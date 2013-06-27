@@ -1,0 +1,10 @@
+//combining moderated_history table
+alter table History add (Moderated_Time_Stamp timestamp, Moderator_ID int, Accepted tinyint, Comments text);
+update History as h, Moderated_History as mh set h.Moderated_Time_Stamp=mh.Time_Stamp, h.Moderator_ID=mh.Moderator_ID, h.Accepted=mh.Accepted, h.Comments=mh.Comments where h.Description_ID=mh.Description_ID;
+
+// combining main table
+alter table History add (Type_ID int, Country_ID int, State_ID int);
+update History as h, Main as m set h.Type_ID=m.Type_ID, h.Country_ID=m.Country_ID, h.State_ID=m.State_ID where m.Description_ID=h.Description_ID;
+
+// converting overlays from encoded string to points.
+<path-to>/resources/decodePoly.sh

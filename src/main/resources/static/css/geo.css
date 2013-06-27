@@ -1,0 +1,107 @@
+
+body, html {
+    margin: 0 auto;
+}
+
+body {
+    font: 0.9em "EB Garamond", Georgia, serif !important;
+    width: 1100px;
+    height: auto;
+}
+
+.ui-button {
+    font-size: 0.8em;
+}
+
+th {
+    font-size: 0.8em;
+}
+
+.module-header {
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding: 3px;
+    font-weight: bold;
+    font-size: 1.2em;
+    display: block;
+    text-align: center;
+}
+
+.module-content {
+    margin: 0;
+    padding: 10px;
+    display: block;
+}
+
+.label_rng1 {
+    font-weight: bold;
+}
+
+.label_rng {
+    padding-left: 75px;
+}
+
+path {
+    stroke-width: 1;
+    fill: none;
+}
+
+.axis {
+    shape-rendering: crispEdges;
+}
+
+.x.axis line {
+    stroke: lightgrey;
+}
+
+.x.axis .minor {
+    stroke-opacity: .5;
+}
+
+.x.axis path {
+    display: none;
+}
+
+.x.axis text {
+    font-size: 14;
+}
+
+.y.axis line, .y.axis path {
+    fill: none;
+    stroke: #000;
+}
+
+.y.axis text {
+    font-size: 14;
+}
+
+
+table.line-html-table {
+    display: block;
+    overflow: scroll;
+}
+
+.search-widget-header {
+  vertical-align: top;
+  text-align: center; 
+  font-size: 1.2em;
+  padding: 3px;
+}
+
+.perf-row {
+  line-height: 15px;
+  height: 35px;
+}
+
+.performance-label {
+  width: 200px;
+}
+
+.performance-values {
+  display: block;
+  overflow-x: scroll;
+}
+
+.even-row {
+  background-color: #EAE8E8;
+}
