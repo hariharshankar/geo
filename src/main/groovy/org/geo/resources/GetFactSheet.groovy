@@ -19,7 +19,7 @@ import java.util.ArrayList;
  * @author: Harihar Shankar, 3/28/13 4:07 PM
  */
 
-@Path("/factsheet")
+@Path("/geoid")
 @Produces(MediaType.TEXT_HTML)
 public class GetFactSheet {
 

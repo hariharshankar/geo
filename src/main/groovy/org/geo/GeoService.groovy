@@ -18,7 +18,7 @@ public class GeoService extends Service<GeoConfiguration> {
     @Override
     public void initialize(Bootstrap<GeoConfiguration> bootstrap) {
         bootstrap.setName("");
-        //  bootstrap.addBundle(new ConfiguredAssetsBundle("/static/", "/static/"));
+        bootstrap.addBundle(new ConfiguredAssetsBundle("/static/", "/static/"));
     }
 
     public void run(GeoConfiguration configuration,
