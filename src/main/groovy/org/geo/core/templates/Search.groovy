@@ -1,5 +1,7 @@
 package org.geo.core.templates
 
+import org.geo.core.utils.Tokens
+
 /**
  @author: Harihar Shankar, 7/1/13 4:01 PM
  */
@@ -13,6 +15,13 @@ class Search {
     <meta charset="utf-8" />
     <title>Search - GEO</title>
 
+'''
+        template += "<link rel=\"stylesheet\" href=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/css/custom-theme/jquery-ui-1.10.2.custom.min.css\">\n";
+        template += "<link rel=\"stylesheet\" href=\""+ Tokens.STATIC_BASE_URL+"static/css/geo.css\">\n";
+        template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js\"></script>\n";
+        template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/js/jquery-ui-1.10.2.custom.min.js\"></script>\n";
+        template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/js/geo.js\"></script>\n";
+        /*
     <!-- css -->
     <link rel="stylesheet" href="../static/jquery-ui-1.10.2.custom/css/custom-theme/jquery-ui-1.10.2.custom.min.css">
     <link rel="stylesheet" href="../static/css/geo.css">
@@ -21,7 +30,8 @@ class Search {
     <script src="../static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js"></script>
     <script src="../static/jquery-ui-1.10.2.custom/js/jquery-ui-1.10.2.custom.min.js"></script>
     <script src="../static/js/geo.js"></script>
-
+          */
+        template += '''
     <!-- Map -->
     <script src="http://maps.googleapis.com/maps/api/js?sensor=false&amp;key=AIzaSyAveV8vQj-utZITKgBnVCbovB03hrgNvWE&amp;libraries=drawing,geometry"></script>
 </head>
