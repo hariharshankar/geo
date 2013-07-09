@@ -17,9 +17,9 @@ import javax.ws.rs.core.MediaType;
  * @author: Harihar Shankar, 4/29/13 10:09 PM
  */
 
-@Path("/results")
+@Path("/summary")
 @Produces(MediaType.TEXT_HTML)
-public class GetSearchResults {
+public class GetSummaryResults {
 
     @Timed
     @GET

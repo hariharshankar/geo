@@ -19,7 +19,7 @@ import java.util.ArrayList;
  * @author: Harihar Shankar, 3/28/13 4:07 PM
  */
 
-@Path("/geoid")
+@Path(Tokens.FACT_SHEET_URI)
 @Produces(MediaType.TEXT_HTML)
 public class GetFactSheet {
 
@@ -222,7 +222,9 @@ public class GetFactSheet {
         String returnValue = ""
 
         returnValue += "<div id='overlay-details'></div>"
+        returnValue += "<div id='map-resize'>";
         returnValue += "<div id='map-container' style='height: 480px;'></div>";
+        returnValue += "</div>";
         returnValue += HTMLMarkup.createHiddenField("map_json", Tokens.BASE_URL+"services/json/map?description_id="+descriptionId, "widget_urls");
         return returnValue;
     }

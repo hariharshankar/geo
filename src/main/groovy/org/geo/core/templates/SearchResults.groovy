@@ -25,7 +25,7 @@ public class SearchResults {
         template += "<script src=\""+Tokens.STATIC_BASE_URL+"static/js/geo.js\"></script>\n";
 
         template += "</head>\n" +
-                "<body onload=\"initSearchResults()\">\n";
+                "<body onload=\"Summary.init()\">\n";
 
         template += "<table id=\"search-results ui-widget ui-helper-reset\" style='width: 1200px; height: 100%;'>\n";
 

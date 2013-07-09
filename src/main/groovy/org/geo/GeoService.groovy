@@ -26,9 +26,11 @@ public class GeoService extends Service<GeoConfiguration> {
         environment.addResource(new GetFactSheet());
         environment.addResource(new SubmitFactsheet());
         environment.addResource(new SearchResources());
-        environment.addResource(new GetSearchResults());
+        environment.addResource(new GetSummaryResults());
         environment.addResource(new GetMapJson());
         environment.addResource(new GetLineChartJson());
+        environment.addResource(new GetJsonList());
+        environment.addResource(new GetPlantList());
         //environment.addHealthCheck(new DbConnectionHealthCheck());
     }
 

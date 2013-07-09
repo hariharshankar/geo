@@ -39,7 +39,7 @@ public class GetMapJson {
 
     public static MapLocations getMapJsonForCountryAndType(final String countryId, final String typeId) {
         Moderation moderation = new Moderation();
-        ArrayList<Integer> revisions = moderation.getAllRevisionsForTypeAndCountry(Integer.parseInt(countryId), Integer.parseInt(typeId));
+        Geo revisions = moderation.getAllRevisionsForTypeAndCountry(Integer.parseInt(countryId), Integer.parseInt(typeId));
 
         // TYPE values
         final Select type =  new Select();
@@ -51,19 +51,17 @@ public class GetMapJson {
         final Geo countryGeo = country.read("Country", null, "Country_ID=" + countryId);
         final String countryName = countryGeo.getValueForKey("Country", 0);
 
-        ArrayList<GeoPoint> loc = new ArrayList<GeoPoint>(revisions.size());
-        for (int descriptionId : revisions) {
+        ArrayList<GeoPoint> loc = new ArrayList<GeoPoint>(revisions.getRowCount());
+        for (int i=0; i<revisions.getRowCount(); i++) {
+            int descriptionId = Integer.parseInt(revisions.getValueForKey("Description_ID", i))
+
             // saving lat lng in hidden fields for plotting in google maps
             Select location = new Select();
             Geo locationGeo = location.read(typeName + "_Location", "", "Description_ID=" + descriptionId);
             String latitude = locationGeo.getValueForKey("Latitude_Start", 0);
             String longitude = locationGeo.getValueForKey("Longitude_Start", 0);
 
-            Select description = new Select();
-            Geo descriptionSearchResult = description.read(typeName + "_Description", "Name_omit", "Description_ID=" + descriptionId);
-            String name = descriptionSearchResult.getValueForKey("Name_omit", 0);
-
-            GeoPoint gp = new GeoPoint(Double.parseDouble(latitude), Double.parseDouble(longitude), name);
+            GeoPoint gp = new GeoPoint(Double.parseDouble(latitude), Double.parseDouble(longitude), revisions.getValueForKey("Name", i));
             loc.add(gp);
         }
 
