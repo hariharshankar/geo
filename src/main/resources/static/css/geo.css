@@ -1,4 +1,3 @@
-
 body, html {
     margin: 0 auto;
 }
@@ -9,6 +8,71 @@ body {
     height: auto;
 }
 
+.ui-widget {
+    font: 0.9em "EB Garamond", Georgia, serif !important;
+}
+
+.ui-widget-content {
+    font: 0.9em "EB Garamond", Georgia, serif !important;
+}
+
+#searchWrapper {
+    height: 100%;
+    height: !important;
+    min-height: 600px;
+}
+
+#searchLeftPane {
+    width: 300px;
+    border-right: 1px solid gray;
+    float: left;
+}
+
+#searchRightPane {
+    width: 850px;
+    margin-left: 300px;
+    padding: 5px;
+}
+
+#rightPaneTabs {
+    font-size: 0.9em;
+    float: left;
+    width: 840px;
+}
+
+
+.searchSelectable .ui-selecting { 
+    background: #FECA40; 
+}
+.searchSelectable .ui-selected { 
+    background: #F39814; 
+    color: white; 
+}
+
+.searchSelectableHeader { 
+    list-style-type: none; 
+    margin: 0; 
+    padding: 0; 
+    width: 88%; 
+    border: 1px solid gray;
+}
+
+.searchSelectable { 
+    list-style-type: none; 
+    margin: 0; 
+    padding: 0; 
+    width: 90%; 
+    border: 1px solid gray;
+    max-height: 200px;
+    overflow: auto;
+}
+.searchSelectable div { 
+    margin: 0; 
+    padding: 0.2em; 
+    font-size: 1.1em; 
+    height: 18px; 
+}
+
 .ui-button {
     font-size: 0.8em;
 }
@@ -16,6 +80,7 @@ body {
 th {
     font-size: 0.8em;
 }
+
 
 .module-header {
     margin-top: 10px;
@@ -81,6 +146,7 @@ table.line-html-table {
     overflow: scroll;
 }
 
+
 .search-widget-header {
   vertical-align: top;
   text-align: center; 
@@ -92,7 +158,7 @@ table.line-html-table {
   line-height: 15px;
   height: 35px;
 }
-
+    
 .performance-label {
   width: 200px;
 }
@@ -105,3 +171,8 @@ table.line-html-table {
 .even-row {
   background-color: #EAE8E8;
 }
+
+#map-resize {
+    padding-bottom: 15px;
+}
+

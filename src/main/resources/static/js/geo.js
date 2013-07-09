@@ -2,6 +2,109 @@ var Form;
 var Search;
 var Map;
 var Chart;
+var Summary;
+
+
+var Search = {
+
+    searchDatabase_Type: "PowerPlants",
+    searchType: "Coal",
+    searchCountry: "United States of America",
+    searchState: "0",
+
+    selectableIds: [],
+
+    createSelectableHtml: function (element, data) {
+        select = "";
+        var k = ""
+        if (data["keys"].length == 2)
+            k = data['keys'][1]
+        else
+            k = data['keys'][0]
+            
+        for (var v in data['values']) {
+            var value = data['values'][v]
+            var v = ""
+            if (value.length == 2)
+                v = value[1]
+            else
+                v = value[0]
+            if (Search[element] == v) 
+                select += "<div class='ui-widget-content ui-selected'>"+v+"</div>";
+            else
+                select += "<div class='ui-widget-content'>"+v+"</div>";
+        }
+        $("#"+element).append(select)
+
+        heading = "<h3 class='ui-widget-header module-header searchSelectableHeader'>"+k+"</h3>";
+        $("#"+element).before(heading)
+    },
+
+    getSelectValues: function (reqUrl, reqData, callbackElement) {
+        $.ajax({
+            type: "POST",
+            url: reqUrl,
+            data: reqData,
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",            
+            success: function(data, textStatus, jqXHR) {
+                Search.createSelectableHtml(callbackElement, data)
+            }
+        })    
+    },
+
+    createSelectables: function(t) {
+        if ($(t).attr("id") == undefined) {
+            return;
+        }
+        var type = $(t).attr("id").replace("search", "")
+        var postUrl = $("#jsonListService").attr("value")
+        var data = {}
+
+        data["return_type"] = type
+        var sel = Search.selectableIds
+
+        for (var s in sel) {
+            var prevType = sel[s].replace("search", "")
+            var prevValue = ""
+            if ($("#"+ sel[s] +" .ui-selected").text() != "")
+                prevValue = $("#"+ sel[s] +" .ui-selected").text()
+            else 
+                prevValue = Search[sel[s]]
+            data[prevType] = [prevValue]
+        }
+        var postData = JSON.stringify(data)
+        Search.getSelectValues(postUrl, postData, "search"+type)
+            
+        var id = $(t).attr("id")
+
+        $(t).selectable({
+            selected: function(event, ui) {
+            },
+            create: function(event, ui) {
+                Search.selectableIds.push($(t).attr("id"))
+                window.setTimeout(Search.createSelectables($(t).next(), 5000))
+            }
+        });
+
+    },
+    
+    plantListPostData: {},
+    init: function() {
+        Search.createSelectables($(".searchSelectable").first())
+
+        $( "#rightPaneTabs" ).tabs({
+
+            beforeLoad: function (event, ui) {
+                // reset the url to take new config params
+                ui.ajaxSettings.url = ui.ajaxSettings.url + "?country="+Search.searchCountry+"&type="+Search.searchType
+                console.log(ui.ajaxSettings.url)
+            }
+        });
+
+    }
+}
+
 
 Form = {
     createSingleRowButtons: function() {
@@ -393,6 +496,17 @@ Map = {
                 mapTypeId: google.maps.MapTypeId.ROADMAP
             });
 
+            $("#map-resize").resizable({
+                maxWidth: $("#map-resize").width(),
+                minWidth: $("#map-resize").width(),
+                maxHeight: 900,
+                minHeight: $("#map-resize").height() + 15,
+                stop: function(e, ui) {
+                    $("#map-container").height( $("#map-resize").height() );
+                    google.maps.event.trigger(Map.map, 'resize');
+                }
+            });
+
             // adding drawing tools
             if (showDrawingTools) {
                 Map.getDrawingTools().setMap(Map.map)
@@ -441,7 +555,7 @@ Map = {
     }
 }
 
-Search = {
+Summary = {
 
     init: function() {
         Map.init();
