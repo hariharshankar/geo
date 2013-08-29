@@ -19,10 +19,11 @@ public class Insert {
         connection = new DbConnection().getConnection();
     }
 
-    public boolean insert(final String tableName, final MultivaluedMap<String,String> formData, final String moduleType) {
+    public void close() {
+        connection.close()
+    }
 
-        println(tableName)
-        println(moduleType)
+    public boolean insert(final String tableName, final MultivaluedMap<String,String> formData, final String moduleType) {
 
         if (tableName == null || tableName.equals("")) {
             return false;
@@ -75,6 +76,7 @@ public class Insert {
             else
                 statement.setString(i+2, sqlValues.get(i).toString())
         }
+        statement.execute()
     }
 
 

@@ -11,6 +11,7 @@ public class SearchResults {
 
         String template = "";
 
+        /*
         template += "<!doctype html>\n<head>\n";
         template += "<meta charset=\"utf-8\" />\n";
         template += "<title>{{title}} - GEO</title>\n";
@@ -27,34 +28,41 @@ public class SearchResults {
         template += "</head>\n" +
                 "<body onload=\"Summary.init()\">\n";
 
-        template += "<table id=\"search-results ui-widget ui-helper-reset\" style='width: 1200px; height: 100%;'>\n";
+        */
+        template += "<table id=\"summary-results ui-widget ui-helper-reset\" class='summary-results' >\n";
 
-        template += "<tr style='height: 500px;'>\n";
-        template += "<td id='abstract' style='width: 400px;'>";
-        template += "<h3 class='ui-widget-header search-widget-header'>Summary</h3>";
+        template += "<tr>\n";
+        template += "<td id='line-chart-heading' colspan='2'>";
+        template += "<h3 class='ui-widget-header summary-widget-header'>Overview</h3>";
         template += "</td>\n";
-        template += "<td id='map' style='width: 800px;'>";
-        template += "<h3 class='ui-widget-header search-widget-header'>Map</h3>";
-        template += "<div id='map-container' style='height: 480px;'></div>";
-        template += "</td>\n";
+        template += "</tr>\n";
+        template += "<tr class='summary-widget-container'>\n";
+        template += "<td id='summary-overview' class='summary-overview' colspan='2'></td>\n";
+        template += "</tr>\n";
+
+        template += "<tr>\n";
+        template += "<td id='line-chart-heading' colspan='2'>";
+        template += "<h3 class='ui-widget-header summary-widget-header'>Total Gigawatt Hours Generated and CO2 Emitted (Tonnes)</h3></td>\n";
+        template += "</tr>\n";
+        template += "<tr class='summary-widget-container'>\n";
+        template += "<td id='performance_linechart_cumulative_chart' class='summary-widget-chart' colspan='2'></td>\n";
+        template += "</tr>\n";
+
+        template += "<tr>\n";
+        template += "<td id='line-chart-heading' colspan='2'>";
+        template += "<h3 class='ui-widget-header summary-widget-header'>Cumulative Capacity Added vs Years (Aggregated over the Country)</h3></td>\n";
+        template += "</tr>\n";
+        template += "<tr class='summary-widget-container'>\n";
+        template += "<td id='unit_linechart_cumulative_chart' class='summary-widget-chart' colspan='2'></td>\n";
         template += "</tr>\n";
 
         template += "<tr>\n";
         template += "<td id='line-chart-heading' colspan=2>";
-        template += "<h3 class='ui-widget-header search-widget-header'>Total Gigawatt Hours Generated and CO2 Emitted (Tonnes)</h3></td>\n";
+        template += "<h3 class='ui-widget-header summary-widget-header'>Data as Table</h3></td>\n";
         template += "</tr>\n";
-        template += "<tr style='height: 500px;'>\n";
-        template += "<td id='performance_linechart_cumulative_table' style='width: 400px;'></td>\n";
-        template += "<td id='performance_linechart_cumulative_chart' style='width: 800px;'></td>\n";
-        template += "</tr>\n";
-
-        template += "<tr>\n";
-        template += "<td id='line-chart-heading' colspan=2>";
-        template += "<h3 class='ui-widget-header search-widget-header'>Cumulative Capacity Added vs Years (Aggregated over the Country)</h3></td>\n";
-        template += "</tr>\n";
-        template += "<tr style='height: 500px;'>\n";
-        template += "<td id='unit_linechart_cumulative_table' style='width: 400px;'></td>\n";
-        template += "<td id='unit_linechart_cumulative_chart' style='width: 800px;'></td>\n";
+        template += "<tr class='summary-widget-container'>\n";
+        template += "<td id='unit_linechart_cumulative_table' class='summary-widget-table'></td>\n";
+        template += "<td id='performance_linechart_cumulative_table' class='summary-widget-table'></td>\n";
         template += "</tr>\n";
 
         template += "</table>";

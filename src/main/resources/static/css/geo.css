@@ -1,5 +1,5 @@
 body, html {
-    margin: 0 auto;
+    margin: 10px;
 }
 
 body {
@@ -14,6 +14,16 @@ body {
 
 .ui-widget-content {
     font: 0.9em "EB Garamond", Georgia, serif !important;
+}
+
+.ui-tabs {
+    padding: 0;
+    margin: 0;
+}
+
+.ui-tabs-panel {
+    padding: 0 !important;
+    margin: 0;
 }
 
 #searchWrapper {
@@ -44,6 +54,7 @@ body {
 .searchSelectable .ui-selecting { 
     background: #FECA40; 
 }
+
 .searchSelectable .ui-selected { 
     background: #F39814; 
     color: white; 
@@ -63,14 +74,20 @@ body {
     padding: 0; 
     width: 90%; 
     border: 1px solid gray;
-    max-height: 200px;
+    max-height: 170px;
     overflow: auto;
 }
+
 .searchSelectable div { 
     margin: 0; 
     padding: 0.2em; 
     font-size: 1.1em; 
     height: 18px; 
+}
+
+.searchUpdateButton {
+    text-align: center;
+    padding: 5px;
 }
 
 .ui-button {
@@ -146,12 +163,27 @@ table.line-html-table {
     overflow: scroll;
 }
 
+.summary-results {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
 
-.search-widget-header {
+.summary-widget-header {
   vertical-align: top;
   text-align: center; 
   font-size: 1.2em;
   padding: 3px;
+}
+
+.summary-widget-container {
+    height: 500px;
+}
+
+.summary-widget-table {
+    width: 35%;
+}
+.summary-widget-chart {
 }
 
 .perf-row {

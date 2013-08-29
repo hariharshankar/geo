@@ -23,21 +23,14 @@ public class GetSummaryResults {
 
     @Timed
     @GET
-    public String getSearchResults(@QueryParam("q") final String query) {
-
-        //TODO: make this a google like search result page.
+    public String getSearchResults(@QueryParam("country") String cntry,
+                                @QueryParam("type") String typ,
+                                @QueryParam("state") String state) {
 
         String html = "";
 
-        String[] q = query.split(" in ");
-
-        if (q.length != 2) {
-            html = "Sorry, we only understand queries of type <type> in <country>";
-            return html;
-        }
-
         Select type = new Select();
-        Geo typeGeo = type.read("Type", "", "Type LIKE '" + q[0] + "'", "", "0,1");
+        Geo typeGeo = type.read("Type", "", "Type LIKE '" + typ + "'", "", "0,1");
         String typeName = typeGeo.getValueForKey("Type", 0);
         String typeId = typeGeo.getValueForKey("Type_ID", 0);
 
@@ -46,7 +39,7 @@ public class GetSummaryResults {
         }
 
         Select country = new Select();
-        Geo countryGeo = country.read("Country", "", "Country LIKE '" + q[1] + "'", "", "0,1");
+        Geo countryGeo = country.read("Country", "", "Country LIKE '" + cntry + "'", "", "0,1");
         String countryName = countryGeo.getValueForKey("Country", 0);
         String countryId = countryGeo.getValueForKey("Country_ID", 0);
 
@@ -55,6 +48,7 @@ public class GetSummaryResults {
         }
 
         String content = "";
+        content += HTMLMarkup.createHiddenField("summary_json", Tokens.BASE_URL+"services/json/summary?country_id="+countryId+"&type_id="+typeId, "widget_urls");
         content += HTMLMarkup.createHiddenField("map_json", Tokens.BASE_URL+"services/json/map?country_id="+countryId+"&type_id="+typeId, "widget_urls");
         content += HTMLMarkup.createHiddenField("performance_linechart_cumulative_json_url", Tokens.BASE_URL+"services/json/linechart?country_id="+countryId+"&type_id="+typeId+"&module=performance&fields=Total_Gigawatt_Hours_Generated_nbr,CO2_Emitted_(Tonnes)_nbr&chart=cumulative", "widget_urls");
         content += HTMLMarkup.createHiddenField("unit_linechart_cumulative_json_url", Tokens.BASE_URL+"services/json/linechart?country_id="+countryId+"&type_id="+typeId+"&module=unit&fields=Capacity_(MWe)_nbr&chart=cumulative", "widget_urls");

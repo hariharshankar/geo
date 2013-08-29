@@ -1,5 +1,6 @@
-package org.geo.resources;
+package org.geo.resources
 
+import com.sun.corba.se.impl.ior.WireObjectKeyTemplate;
 import com.yammer.metrics.annotation.Timed
 import org.geo.core.db.Geo
 import org.geo.core.db.Select
@@ -47,10 +48,12 @@ public class SearchResources {
         leftPaneContent += "<div id='searchType' class='searchSelectable'></div>"
         leftPaneContent += "<div id='searchCountry' class='searchSelectable'></div>"
         leftPaneContent += "<div id='searchState' class='searchSelectable'></div>"
+        leftPaneContent += "<div class='searchUpdateButton' id='searchUpdateButton'><button id='updateSearch' class='updateSearch'>Update</button></div>"
 
         //json services for type, country, state and plant list
 
         leftPaneContent += HTMLMarkup.createHiddenField("jsonListService", Tokens.BASE_URL + "services/json/list", "")
+        leftPaneContent += HTMLMarkup.createHiddenField("jsonMapService", Tokens.BASE_URL + "services/json/map", "")
 
         //right pane tabs
         String rightPaneTabs = "";
@@ -58,8 +61,9 @@ public class SearchResources {
         rightPaneTabs += "<div id='rightPaneTabs'>"
         rightPaneTabs += "<ul>"
         rightPaneTabs += "<li><a href='"+Tokens.BASE_URL+"plantlist'>List of Resources</a></li>";
-        rightPaneTabs += "<li><a href='/summary'>Summary</a></li>";
-        rightPaneTabs += "<li><a href='/analysis'>Analysis</a></li>";
+        rightPaneTabs += "<li><a href='"+Tokens.BASE_URL+"summary'>Summary</a></li>";
+        rightPaneTabs += "<li><a href='"+Tokens.BASE_URL+"map'>Map</a></li>";
+        rightPaneTabs += "<li><a href='"+Tokens.BASE_URL+"analysis'>Analysis</a></li>";
         rightPaneTabs += "</ul>"
         rightPaneTabs += "</div>"
 

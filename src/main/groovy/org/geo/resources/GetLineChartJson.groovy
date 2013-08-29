@@ -22,13 +22,13 @@ import java.util.HashMap;
 public class GetLineChartJson {
 
     @GET
-    public LineChart getLineChartJson(@QueryParam("country_id") final String countryId,
+    public Geo getLineChartJson(@QueryParam("country_id") final String countryId,
                                 @QueryParam("type_id") final String typeId,
                                 @QueryParam("module") final String module,
                                 @QueryParam("fields") final String fields,
                                 @QueryParam("chart") final String chart) {
 
-        LineChart lineChart;
+        Geo lineChart;
         if (chart.equals("cumulative")) {
             lineChart = getJsonForCumulativeChart(countryId, typeId, fields, module);
         }
@@ -39,7 +39,7 @@ public class GetLineChartJson {
         return lineChart;
     }
 
-    private LineChart getJsonForCumulativeChart(final String countryId, final String typeId, final String fields, final String module) {
+    private static Geo getJsonForCumulativeChart(final String countryId, final String typeId, final String fields, final String module) {
 
         // TYPE values
         final Select type =  new Select();
@@ -52,7 +52,7 @@ public class GetLineChartJson {
         final String countryName = countryGeo.getValueForKey("Country", 0);
 
         Moderation moderation = new Moderation();
-        ArrayList<Integer> revisions = moderation.getAllRevisionsForTypeAndCountry(Integer.parseInt(countryId), Integer.parseInt(typeId));
+        Geo revisions = moderation.getAllRevisionsForTypeAndCountry(Integer.parseInt(countryId), Integer.parseInt(typeId));
 
         String mod;
         String xAxis = "";
@@ -67,14 +67,22 @@ public class GetLineChartJson {
         else
             return null;
 
-        HashMap<String, HashMap<String,Double>> cumulative = new HashMap<String, HashMap<String, Double>>();
+        Geo cumulative = new Geo();
 
         Integer startYear = 0;
         Integer endYear = 0;
 
+        ArrayList<String> keys = new ArrayList<String>();
+        HashMap<String, ArrayList<String>> fieldValues = new HashMap<String, ArrayList<String>>()
+
+        keys.add(xAxis)
+
         for (String field : fields.split(",")) {
             HashMap<String, Double> cumulativeValue = new HashMap<String, Double>();
-            for (int descriptionId : revisions) {
+            ArrayList<String> values = new ArrayList<String>();
+
+            for (ArrayList<String> res : revisions.getValues()) {
+                int descriptionId = Integer.parseInt(res.get(0))
                 Select gwh = new Select();
                 Geo gwhGeo = gwh.read(typeName + mod, fields + "," + xAxis, "Description_ID=" + descriptionId);
 
@@ -121,18 +129,32 @@ public class GetLineChartJson {
                         cumulativeValue.put(year, gwhValue);
                     }
                 }
-                cumulative.put(field, cumulativeValue);
             }
-        }
-        for (String k : cumulative.keySet()) {
-            HashMap<String, Double> line = cumulative.get(k);
+            keys.add(field)
             for (int y=startYear; y<=endYear; y++) {
-                if (line.get(String.format("%d", y)) == null) {
-                    line.put(String.format("%d", y), 0.0);
-                }
+                String v = (cumulativeValue.get(String.format("%d", y)) == null) ? 0.0 : cumulativeValue.get(String.format("%d", y))
+                values.add(v)
             }
-            cumulative.put(k, line);
+            fieldValues.put(field, values)
         }
-        return new LineChart(cumulative);
+
+        ArrayList<String> years = new ArrayList<String>();
+
+        ArrayList<ArrayList<String>> value = new ArrayList<ArrayList<String>>();
+        for (int y=startYear; y<=endYear; y++) {
+            years.add(String.format("%d", y))
+        }
+        fieldValues.put(keys.get(0), years)
+        for (int i=0; i<fieldValues.get(keys.get(0)).size(); i++) {
+            ArrayList<String> v = []
+            for (String k : keys) {
+                v.add(fieldValues.get(k).get(i))
+            }
+            value.add(v)
+        }
+
+        cumulative.setValues(value)
+        cumulative.setKeys(keys)
+        return cumulative;
     }
 }

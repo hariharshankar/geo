@@ -21,6 +21,7 @@ class Search {
         template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js\"></script>\n";
         template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/js/jquery-ui-1.10.2.custom.min.js\"></script>\n";
         template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/js/geo.js\"></script>\n";
+        template += "<script src=\"http://d3js.org/d3.v3.js\"></script>";
         /*
     <!-- css -->
     <link rel="stylesheet" href="../static/jquery-ui-1.10.2.custom/css/custom-theme/jquery-ui-1.10.2.custom.min.css">

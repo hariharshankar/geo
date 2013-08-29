@@ -14,6 +14,11 @@ public class Select {
         connection = new DbConnection().getConnection();
     }
 
+
+    public void close() {
+        connection.close()
+    }
+
     public Geo read(String tableName, String selectValues, String whereClause, String sortClause, String limitClause) {
 
         if (tableName == null || tableName.equals("")) {

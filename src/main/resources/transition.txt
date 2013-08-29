@@ -8,3 +8,10 @@ update History as h, Main as m set h.Type_ID=m.Type_ID, h.Country_ID=m.Country_I
 
 // converting overlays from encoded string to points.
 <path-to>/resources/decodePoly.sh
+
+// global analysis metadata
+//create table
+create table metadata (Country_ID int NOT NULL, Type_ID int NOT NULL, Number_of_Plants int, Cumulative_Capacity double, New_Capacity_Added blob, Annual_Gigawatt_Hours_Generated blob, Annual_CO2_Emitted blob);
+
+//TODO
+<execute>Metadata class

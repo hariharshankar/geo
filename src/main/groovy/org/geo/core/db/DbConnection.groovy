@@ -18,7 +18,8 @@ public class DbConnection {
 
     public Connection getConnection() {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost/geoDev?user=geo&password=0p3nM0d3!");
+            //connection = DriverManager.getConnection("jdbc:mysql://localhost/geoDev?user=geo&password=0p3nM0d3!");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost/GEO?user=geo&password=0p3nM0d3!");
         } catch (SQLException ex) {
             //TODO sql error
             println(ex);

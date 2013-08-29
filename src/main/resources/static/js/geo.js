@@ -3,18 +3,28 @@ var Search;
 var Map;
 var Chart;
 var Summary;
+var Geo;
 
+Geo = {
+    getUrlParameter: function(name) {
+        return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+    },
 
-var Search = {
+    getPageUrl: function() {
+        return window.location.href.split("?")[0]
+    }
+} 
 
-    searchDatabase_Type: "PowerPlants",
-    searchType: "Coal",
-    searchCountry: "United States of America",
-    searchState: "0",
+Search = {
+
+    searchDatabase_Type: (Geo.getUrlParameter("database_type") == null) ? "" : Geo.getUrlParameter("database_type"),
+    searchType: (Geo.getUrlParameter("type") == null) ? "" : Geo.getUrlParameter("type"),
+    searchCountry: (Geo.getUrlParameter("country") == null) ? "" : Geo.getUrlParameter("country"),
+    searchState: (Geo.getUrlParameter("state") == null) ? "" : Geo.getUrlParameter("state"),
 
     selectableIds: [],
 
-    createSelectableHtml: function (element, data) {
+    createHtmlForSelectables: function (element, data) {
         select = "";
         var k = ""
         if (data["keys"].length == 2)
@@ -29,7 +39,7 @@ var Search = {
                 v = value[1]
             else
                 v = value[0]
-            if (Search[element] == v) 
+            if (Search[element].toLowerCase() == v.toLowerCase()) 
                 select += "<div class='ui-widget-content ui-selected'>"+v+"</div>";
             else
                 select += "<div class='ui-widget-content'>"+v+"</div>";
@@ -40,6 +50,19 @@ var Search = {
         $("#"+element).before(heading)
     },
 
+    getUserValues: function() {
+
+        params = {}
+        $(".searchSelectable").each(function() {
+            var key = $(this).attr("id").replace("search", "").toLowerCase()
+            var value = $(this).children(".ui-selected").text()
+            if (value != "") {
+                params[key] = value.toLowerCase()
+            }
+        })
+        return params
+    },
+
     getSelectValues: function (reqUrl, reqData, callbackElement) {
         $.ajax({
             type: "POST",
@@ -48,13 +71,41 @@ var Search = {
             dataType: "json",
             contentType: "application/json; charset=utf-8",            
             success: function(data, textStatus, jqXHR) {
-                Search.createSelectableHtml(callbackElement, data)
+                Search.createHtmlForSelectables(callbackElement, data)
             }
         })    
     },
 
+    createRightPaneTabs: function() {
+        $( "#rightPaneTabs" ).tabs({
+            load: function (event, ui) {
+                if (ui.tab[0].textContent == "Summary") {
+                    Summary.init()
+                }
+                if (ui.tab[0].textContent == "Map") {
+                    var map_container = $("#map-container")
+                    map_container.css("weight", map_container.parent().width()-5)
+                    map_container.css("height", "800")
+                    map_container.css("padding", "1px")
+
+                    Map.init(false)
+                }
+            },
+            beforeLoad: function (event, ui) {
+                // reset the url to take new config params
+                params = {}
+                params['database_type'] = Search.searchDatabase_Type
+                params['type'] = Search.searchType
+                params['country'] = Search.searchCountry
+                params['state'] = Search.searchState
+                ui.ajaxSettings.url = ui.ajaxSettings.url + "?" + $.param(params)
+            }
+        });
+    },
+
     createSelectables: function(t) {
-        if ($(t).attr("id") == undefined) {
+        if ($(t).attr("id") == "searchUpdateButton") {
+            Search.createRightPaneTabs()
             return;
         }
         var type = $(t).attr("id").replace("search", "")
@@ -83,25 +134,25 @@ var Search = {
             },
             create: function(event, ui) {
                 Search.selectableIds.push($(t).attr("id"))
-                window.setTimeout(Search.createSelectables($(t).next(), 5000))
+                Search.createSelectables($(t).next())
             }
         });
-
     },
     
     plantListPostData: {},
+
     init: function() {
         Search.createSelectables($(".searchSelectable").first())
 
-        $( "#rightPaneTabs" ).tabs({
-
-            beforeLoad: function (event, ui) {
-                // reset the url to take new config params
-                ui.ajaxSettings.url = ui.ajaxSettings.url + "?country="+Search.searchCountry+"&type="+Search.searchType
-                console.log(ui.ajaxSettings.url)
-            }
-        });
-
+        $("#updateSearch")
+            .button()
+            .click (function(event) {
+                event.preventDefault()
+                params = Search.getUserValues()
+                base_url = Geo.getPageUrl()
+                updateUrl = base_url + "?" + $.param(params)
+                window.location.href = updateUrl
+            })
     }
 }
 
@@ -196,25 +247,194 @@ Chart = {
         var html = ''
         html += "<table style='width: "+w+"; height: 400px;' class='line-html-table'>";
         html += "<tr class='line-html-table-header'>";
-        html += "<th class='ui-widget-header'>Year</th>";
+        //html += "<th class='ui-widget-header'>Year</th>";
         for (var k in keys) {
             html += "<th class='ui-widget-header'>"+keys[k]+"</th>";
         }
         html += "</tr>";
 
         var count = 0;
+        
         for (var y in years) {    
             html += "<tr>";
             html += "<td class='line-html-table-years'>"+years[y]+"</td>";
 
-            for (var k in keys) {
+            // keys array contain "years" and data array does not... 
+            // TODO: better data structure
+            for (k=0; k <keys.length-1; k++) {
                 html += "<td align='center'>"+data[k][count]+"</td>";
             }
             html += "</tr>";
             count++;
         }
+        
         html += "</table>";
         $("#"+tableContainer).append(html)
+    },
+
+    plotPieChart: function(pieData, chartContainer) {
+
+        var data = []
+        for (var k in pieData) {
+            data.push(pieData[k])
+        }
+
+        // define dimensions of graph
+        var m = [80, 85, 80, 80]; // margins
+        var w = $("#"+chartContainer).width() - m[1] - m[3]; // width
+        var h = $("#"+chartContainer).height() - m[0] - m[2]; // height
+        var radius = Math.min(w, h) / 2;
+        var color = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00", "crimson", "steelblue", "forestgreen"]
+
+        var arc = d3.svg.arc()
+        .outerRadius(radius - 10)
+        .innerRadius(0);
+
+        var pie = d3.layout.pie()
+        .sort(null)
+        .value(function(d) { return d; });
+
+        var svg = d3.select("#"+chartContainer).append("svg")
+        .attr("width", w)
+        .attr("height", h)
+        .append("g")
+        .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")");
+
+        var g = svg.selectAll(".arc")
+        .data(pie(data))
+        .enter().append("g")
+        .attr("class", "arc");
+
+        var dCount = 0
+        g.append("path")
+        .attr("d", arc)
+        .style("fill", function(d) { dCount++; console.log(color[dCount]);return color[dCount]; });
+
+        g.append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .text(function(d) { return d.data; });
+    },
+
+    /*
+    plotBubbleChart: function(bubbleData, chartContainer) {
+        var values = []
+        for (var k in bubbleData) {
+            values.push({"value": bubbleData[k], "key": k, "package": "type"})
+        }
+        var m = [80, 85, 80, 80]; // margins
+        var w = $("#"+chartContainer).width() - m[1] - m[3]; // width
+        var h = $("#"+chartContainer).height() - m[0] - m[2]; // height
+        
+        //var diameter = Math.min(w, h);
+        var diameter = 500
+
+        format = d3.format(",d"),
+        color = ["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00", "crimson", "steelblue", "forestgreen"];
+
+        var bubble = d3.layout.pack()
+            .sort(null)
+            .size([diameter, diameter])
+            //.padding(1.5);
+
+        var svg = d3.select("#"+chartContainer).append("svg")
+            .attr("width", diameter)
+            .attr("height", diameter)
+            .attr("class", "bubble");
+
+        var node = svg.selectAll(".node")
+            .data(bubble.nodes({children: values}))
+            .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+            node.append("title")
+            .text(function(d) { console.log(d);return d.key + ": " + format(d.value); });
+
+            var dCount = 0
+            node.append("circle")
+            .attr("r", function(d) { return d.r; })
+            .style("fill", function(d) { return color[dCount++]; });
+
+            node.append("text")
+            .attr("dy", ".3em")
+            .style("text-anchor", "middle")
+            .text(function(d) { return d.key; });
+
+        // Returns a flattened hierarchy containing all leaf nodes under the root.
+        function classes(root) {
+            var classes = [];
+
+            function recurse(name, node) {
+                if (node.children) node.children.forEach(function(child) { recurse(node.name, child); });
+                else classes.push({packageName: name, className: node.name, value: node.size});
+            }
+
+            recurse(null, root);
+            return {children: classes};
+        }
+
+        d3.select(self.frameElement).style("height", diameter + "px");
+    },
+    */
+
+    plotBubbleChart: function(bubbleData, chartContainer) {
+        var values = []
+        for (var k in bubbleData) {
+            values.push({"size": bubbleData[k], "name": k})
+        }
+        var json = {
+            "name": "type",
+            "children": values
+        };
+
+        var r = 500,
+        format = d3.format(",d"),
+        fill = d3.scale.category20c();
+
+        var bubble = d3.layout.pack()
+        .sort(null)
+        .size([r, r])
+        .padding(1.5);
+
+        var vis = d3.select("#"+chartContainer).append("svg")
+        .attr("width", r)
+        .attr("height", r)
+        .attr("class", "bubble");
+
+
+        var node = vis.selectAll("g.node")
+        .data(bubble.nodes(classes(json))
+        .filter(function(d) { return !d.children; }))
+        .enter().append("g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+        node.append("title")
+        .text(function(d) { return d.className + ": " + format(d.value); });
+
+        node.append("circle")
+        .attr("r", function(d) { return d.r; })
+        .style("fill", function(d) { return fill(d.packageName); });
+
+        node.append("text")
+        .attr("text-anchor", "middle")
+        .attr("dy", ".3em")
+        .text(function(d) { return d.className.substring(0, d.r / 3); });
+
+        // Returns a flattened hierarchy containing all leaf nodes under the root.
+        function classes(root) {
+            var classes = [];
+
+            function recurse(name, node) {
+                if (node.children) node.children.forEach(function(child) { recurse(node.name, child); });
+                else classes.push({packageName: name, className: node.name, value: node.size});
+            }
+
+            recurse(null, root);
+            return {children: classes};
+        }
     },
 
     plotLineChart: function(lineData, chartContainer) {
@@ -309,6 +529,24 @@ Chart = {
         }, 1500);
     },
 
+
+    parseChartData: function(d) {
+        var keys = []
+        var data = []
+        var years = []
+        for (k=1; k<d.keys.length; k++) {
+            var dLine = [];
+            for (v=0; v<d.values.length; v++) {
+                if (years.indexOf(d.values[v][0]) < 0)
+                    years.push(d.values[v][0]);
+                dLine.push(Math.round(d.values[v][k]))
+            }
+            data.push(dLine)
+            keys = d.keys
+        }
+        return [keys, years, data]
+    },
+
     getPerformanceCumulativeChart: function() {
 
         var years = []
@@ -316,16 +554,10 @@ Chart = {
         var data = []
 
         $.getJSON($("#performance_linechart_cumulative_json_url").attr("value"), function(d) {
-            for (key in d.lines) {
-                var dLine = [];
-                for (year in d.lines[key]) {
-                    if (years.indexOf(year) < 0)
-                        years.push(year);
-                    dLine.push(Math.round(d.lines[key][year]))
-                }
-                data.push(dLine)
-                keys.push(key)
-            }
+            var arr = Chart.parseChartData(d)
+            keys = arr[0]
+            years = arr[1]
+            data = arr[2]
         })
         .done( function() { 
             var lineData = { "years": years, "data": data, "keys": keys };
@@ -342,16 +574,10 @@ Chart = {
         var data = []
 
         $.getJSON($("#unit_linechart_cumulative_json_url").attr("value"), function(d) {
-            for (key in d.lines) {
-                var dLine = [];
-                for (year in d.lines[key]) {
-                    if (years.indexOf(year) < 0)
-                        years.push(year);
-                    dLine.push(Math.round(d.lines[key][year]))
-                }
-                data.push(dLine)
-                keys.push(key)
-            }
+            var arr = Chart.parseChartData(d)
+            keys = arr[0]
+            years = arr[1]
+            data = arr[2]
         })
         .done( function() { 
             var lineData = { "years": years, "data": data, "keys": keys };
@@ -526,9 +752,11 @@ Map = {
 
                     // drawing saved overlays
                     name = data.locations[location]['name']
-                    if (data.locations[location]['overlays'].length > 0) {
-                        var overlays = data.locations[location]['overlays']
-                        Map.drawSavedOverlays(overlays)
+                    if (data.locations[location]['overlays'] != null) {
+                        if (data.locations[location]['overlays'].length > 0) {
+                            var overlays = data.locations[location]['overlays']
+                            Map.drawSavedOverlays(overlays)
+                        }
                     }
                 }
 
@@ -557,10 +785,133 @@ Map = {
 
 Summary = {
 
+    displaySummaryResults: function(numberOfPlants, cumulativeCapacity, tableContainer) {
+
+        var w = $("#"+tableContainer).width();
+
+        var html = ''
+        html += "<table style='width: 100%; height: 100%; overflow: auto;' class='line-html-table'>";
+        html += "<tr>";
+        html += "<td class='line-html-table-years'>Total Number of Plants: </td>";
+
+        html += "<td align='center'>"+numberOfPlants+"</td>";
+        html += "</tr>";
+        
+        html += "<tr>";
+        html += "<td class='line-html-table-years'>Total Cumulative Capacity: </td>";
+
+        html += "<td align='center'>"+cumulativeCapacity+"</td>";
+        html += "</tr>";
+        html += "</table>";
+        //$("#"+tableContainer).append(html)
+
+        var url = $("#summary_json").attr("value")
+        url = url.replace(new RegExp(".type_id=[0-9]{1,2}"), "")
+        console.log(url)
+        $.getJSON(url, function(d) {
+            cumulativeCapacity = {}
+            numberOfPlants = {}
+            console.log(d)
+            for (j=0,k; k=d.keys[j]; j++) {
+                if (k.search("Cumulative_Capacity") == 0) {
+                    for (i=0; i<d.values.length; i++) {
+                        var type = ""
+                        for (t=0; t<Summary.typeValues.values.length; t++) {
+                            if (Summary.typeValues.values[t][0] == d.values[i][0]) {
+                                type = Summary.typeValues.values[t][1]
+                                break
+                            }
+                        }
+                        cumulativeCapacity[type] = d.values[i][j]
+                    }
+                }
+                else if (k.search("Number_of_Plants") == 0) {
+                    for (i=0; i<d.values.length; i++) {
+                        numberOfPlants[d.values[i][0]] = d.values[i][j]
+                    }
+                }
+            }
+            Chart.plotBubbleChart(cumulativeCapacity, tableContainer)
+        })
+    },
+
+    typeValues: {},
+
     init: function() {
-        Map.init();
-        Chart.getPerformanceCumulativeChart();
-        Chart.getUnitCumulativeCapacityChart();
-        //plotLineChart(lineData);
+
+        var reqUrl = $("#jsonListService").attr("value")
+        var reqData = {}
+        reqData["return_type"] = "Type"
+        reqData["Database_Type"] = ["powerplants"]
+        $.ajax({
+            type: "POST",
+            url: reqUrl,
+            data: JSON.stringify(reqData),
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",            
+            success: function(data, textStatus, jqXHR) {
+                Summary.typeValues = data
+            }
+        })    
+
+
+        $.getJSON($("#summary_json").attr("value"), function(d) {
+            var numberOfPlants = 0
+            var cumulativeCapacity = 0
+            var newCapAddedIndex = 0
+            var annGWhGenIndex = 0
+            var annCO2EmIndex = 0
+
+            for (var i=0, k; k=d.keys[i]; i++) {
+                if (k.search("New_Capacity_Added") == 0) {
+                    newCapAddedIndex = i
+                }
+                else if (k.search("Annual_Gigawatt_Hours_Generated") == 0) {
+                    annGWhGenIndex = i
+                }
+                else if (k.search("Annual_CO2_Emitted") == 0) {
+                    annCO2EmIndex = i
+                }
+                else if (k.search("Cumulative_Capacity") == 0) {
+                    cumulativeCapacity = d.values[0][i]
+                }
+                else if (k.search("Number_of_Plants") == 0) {
+                    numberOfPlants = d.values[0][i]
+                }
+            }
+
+            Summary.displaySummaryResults(numberOfPlants, cumulativeCapacity, "summary-overview")
+
+            var newCapArr = Chart.parseChartData($.parseJSON(d.values[0][newCapAddedIndex]))
+            newCapKeys = newCapArr[0]
+            newCapYears = newCapArr[1]
+            newCapData = newCapArr[2]
+
+            var perfCumulativeChartData = []
+            var perfCumulativeChartKeys = []
+            var annCO2Em = $.parseJSON(d.values[0][annCO2EmIndex])
+            var annGWhGen = $.parseJSON(d.values[0][annGWhGenIndex])
+            perfCumulativeChartKeys = annGWhGen.keys
+            perfCumulativeChartKeys.push(annCO2Em.keys[1])
+
+            for (v in annGWhGen.values) {
+                perfCumulativeChartData.push([annGWhGen.values[v][0], annGWhGen.values[v][1], annCO2Em.values[v][1]])
+            }
+
+            var arr = Chart.parseChartData({"keys": perfCumulativeChartKeys, "values": perfCumulativeChartData})
+            cumKeys = arr[0]
+            cumYears = arr[1]
+            cumData = arr[2]
+        }) 
+        .done( function() { 
+            var lineData = { "years": cumYears, "data": cumData, "keys": cumKeys };
+            Chart.plotLineChart(lineData, "performance_linechart_cumulative_chart")
+            Chart.plotLineDataTable(lineData, "performance_linechart_cumulative_table")
+            
+            lineData = { "years": newCapYears, "data": newCapData, "keys": newCapKeys };
+            Chart.plotLineChart(lineData, "unit_linechart_cumulative_chart")
+            Chart.plotLineDataTable(lineData, "unit_linechart_cumulative_table")
+        })
+        .fail( function() { return null; } );
     }
 }

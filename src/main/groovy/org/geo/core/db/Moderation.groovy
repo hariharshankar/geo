@@ -14,6 +14,8 @@ public class Moderation {
 
         Integer descriptionID = Integer.parseInt(historyGeo.getValueForKey("Description_ID", 0));
 
+        history.close()
+
         return descriptionID;
     }
 
@@ -28,6 +30,7 @@ public class Moderation {
         for (int i=0; i<rowCount; i++)
             revisions.add(Integer.parseInt(historyGeo.getValueForKey("Description_ID", i)));
 
+        history.close()
         return revisions;
     }
 
@@ -52,12 +55,14 @@ public class Moderation {
             // TYPE values
             final Select type =  new Select();
             final Geo typeGeo = type.read("Type", null, "Type_ID=" + typeId);
+            type.close()
             final String typeName = typeGeo.getValueForKey("Type", 0);
 
             Select description = new Select();
             Geo descriptionSearchResult = description.read(typeName + "_Description", "Name_omit", "Description_ID=" + descriptionId);
             String name = descriptionSearchResult.getValueForKey("Name_omit", 0);
 
+            description.close()
             v.add(descriptionId)
             v.add(name)
 
@@ -67,12 +72,14 @@ public class Moderation {
         Geo revisions = new Geo();
         revisions.setKeys(keys)
         revisions.setValues(values)
+        history.close()
         return revisions;
     }
 
     public Geo getTypeForDb(final String databaseType) {
         Select type = new Select();
         Geo typeGeo = type.read("Type", "Type_ID,Type", "Database_Type='"+databaseType+"'", "Type_ID ASC")
+        type.close()
         return typeGeo
     }
 
@@ -81,9 +88,11 @@ public class Moderation {
         Select typeSelect = new Select();
         Geo typeGeo = typeSelect.read("Type", "Type_ID", "Type='"+type+"'")
         String typeId = typeGeo.getValueForKey("Type_ID", 0)
+        typeSelect.close()
 
         Select history = new Select();
         Geo historyGeo = history.read("History", "distinct(Country_ID)", "Type_ID="+typeId)
+        history.close()
         Integer numberOfCountries = historyGeo.getRowCount()
 
         ArrayList<String> keys = new ArrayList<String>();
@@ -96,6 +105,8 @@ public class Moderation {
             String countryId = historyGeo.getValueForKey("Country_ID", c)
             Select countrySelect = new Select();
             Geo countryGeo = countrySelect.read("Country", "Country_ID,Country", "Country_ID="+countryId)
+
+            countrySelect.close()
 
             ArrayList<String> v = new ArrayList<String>(1);
             v.add(countryGeo.getValueForKey("Country_ID", 0))
@@ -113,9 +124,11 @@ public class Moderation {
         Select countrySelect = new Select();
         Geo countryGeo = countrySelect.read("Country", "Country_ID", "Country LIKE '"+country+"'")
         String countryId = countryGeo.getValueForKey("Country_ID", 0);
+        countrySelect.close()
 
         Select stateSelect = new Select();
         Geo stateGeo = stateSelect.read("State", "State_ID,State", "Country_ID="+countryId)
+        stateSelect.close()
         return stateGeo
     }
 
@@ -123,6 +136,7 @@ public class Moderation {
 
         Select type = new Select();
         Geo typeGeo = type.read("Type", "distinct(Database_Type)", "", "")
+        type.close()
         return typeGeo
     }
 }
