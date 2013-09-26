@@ -1,11 +1,7 @@
 package org.geo.resources
 
-import com.sun.corba.se.impl.ior.WireObjectKeyTemplate;
 import com.yammer.metrics.annotation.Timed
-import org.geo.core.db.Geo
-import org.geo.core.db.Select
 import org.geo.core.templates.Search
-import org.geo.core.templates.Summary
 import org.geo.core.utils.HTMLMarkup
 import org.geo.core.utils.Tokens;
 

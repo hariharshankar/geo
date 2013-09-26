@@ -2,12 +2,18 @@ package org.geo.resources
 
 import org.geo.core.db.Geo
 import org.geo.core.db.Insert
+import org.geo.core.db.Moderation
 import org.geo.core.db.SeedInfo
-import org.geo.core.db.Select;
+import org.geo.core.db.Select
+import org.geo.core.templates.SubmitResponse
+import org.geo.core.utils.Tokens
 
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.MultivaluedMap
+import javax.ws.rs.core.Response
+import javax.ws.rs.core.UriBuilder;
 
 /**
  * @author: Harihar Shankar, 6/11/13 1:49 PM
@@ -15,13 +21,15 @@ import javax.ws.rs.core.MultivaluedMap;
 
 @Path("/factsheet/submit")
 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-@Produces(MediaType.TEXT_HTML)
+//@Produces(MediaType.TEXT_HTML)
+
 public class SubmitFactsheet {
 
     private String typeId;
     private String countryId;
     private String stateId;
     private String descriptionId;
+    private String oldDescriptionId;
 
     private String typeName;
     private String countryName;
@@ -33,7 +41,25 @@ public class SubmitFactsheet {
     public String submitFactSheet(MultivaluedMap<String, String> formData) {
         String result = "";
 
-        descriptionId = formData.get("Description_ID")[0]
+        oldDescriptionId = formData.get("Description_ID")[0]
+
+        Integer parentPlantId = 0
+        if (Integer.parseInt(oldDescriptionId) > 0) {
+            Moderation moderation = new Moderation();
+            parentPlantId = moderation.getParentPlantId(Integer.parseInt(oldDescriptionId))
+        }
+
+        Insert historyInsert = new Insert()
+        formData.add("Moderated", "0")
+        formData.add("Moderator_ID", "0")
+        formData.add("Accepted", "0")
+        formData.add("User_ID", "11")
+        formData.add("Parent_Plant_ID", parentPlantId.toString())
+
+        descriptionId = historyInsert.insert("History", formData, "history").toString()
+        formData["Description_ID"][0] = descriptionId
+
+        println(descriptionId)
 
         SeedInfo seedInfo = new SeedInfo(Integer.parseInt(descriptionId));
 
@@ -51,7 +77,6 @@ public class SubmitFactsheet {
         stateId = seedInfo.getState().get("stateId");
         stateName = seedInfo.getState().get("stateName");
 
-
         // TypeFeatures table
         final Select typeFeatures =  new Select();
         final Geo typeFeaturesGeo = typeFeatures.read("Type_Features", null, "Type_ID=" + typeId);
@@ -61,7 +86,7 @@ public class SubmitFactsheet {
 
             final String tableName = typeName + "_" + f
 
-            if (f.matches("Unit_|Environmental_Issues|Comments|References")) {
+            if (f.matches("Unit_Description|Environmental_Issues|Comments|References|Upgrade")) {
                 Insert insert = new Insert()
                 insert.insert(tableName, formData, "rowColumns")
             }
@@ -73,12 +98,27 @@ public class SubmitFactsheet {
                 // taken care of by "Description" feature
                 continue;
             }
-            else {
+            else if (f.contains("History")) {
+                continue
+            }
+            else if (f.contains("Owner_Details")) {
+                Insert insertOwners = new Insert()
+                insertOwners.insert(typeName+"_Owners", formData, "rowColumns")
+
+                Insert insertOwnerDetails = new Insert()
+                insertOwnerDetails.insert(tableName, formData, "generic")
+            }
+            else if (!f.contains("Associated_Infrastructure")) {
                 Insert insert = new Insert()
                 insert.insert(tableName, formData, "generic")
             }
         }
 
-        return result;
+        String response = SubmitResponse.getTemplate()
+        response = response.replace("{{newSubmission}}", "<a href=\""+Tokens.BASE_URL+"geoid?pid="+descriptionId.toString()+"\">New Submission</a>")
+        response = response.replace("{{originalSubmission}}", "<a href=\""+Tokens.BASE_URL+"geoid?pid="+oldDescriptionId.toString()+"\">Original Fact Sheet</a>")
+        response = response.replace("{{overviewPage}}", "<a href=\""+Tokens.BASE_URL+"search\">Overview Page</a>")
+        return response
+
     }
 }

@@ -24,22 +24,22 @@ public class HTMLMarkup {
     }
 
     private static Boolean shouldDisplay(final String key) {
-        return !key.contains("_ID") && !key.contains("_omit") && !key.contains("Year_yr");
+        return !key.contains("_ID") && !key.contains("Year_yr");
     }
 
 
     private static String createEnumField(String key, String value, String tableName) {
         String row = "";
 
-        Select s = new Select();
-        Map<String, String> en = s.readColumnName(tableName, key);
-
         String dbKey = key.split("_###_")[0]
+        Select s = new Select();
+        Map<String, String> en = s.readColumnName(tableName, dbKey);
+        s.close()
 
         String eV = en.get(dbKey).replace("enum(", "");
         eV = eV.substring(0, eV.length()-1);
 
-        row += "<select id=\""+key+"\">";
+        row += "<select id=\""+key+"\" name=\""+key+"\">";
         for (String option : eV.split(",")) {
             option = option.replaceAll("'", "");
             if (option.equals(value))
@@ -57,6 +57,7 @@ public class HTMLMarkup {
 
         Select s = new Select();
         Map<String, String> en = s.readColumnName(tableName, key);
+        s.close()
         String eV = en.get(key).replace("set(", "");
         eV = eV.substring(0, eV.length()-1);
 
@@ -166,6 +167,7 @@ public class HTMLMarkup {
         String row = "";
         row += "<tr>";
         row += "<th>#</th>";
+
         for (String k : keys) {
             if (shouldDisplay(k)) {
                 row += "<th>" + normalizeToken(k) + "</th>";
@@ -173,6 +175,13 @@ public class HTMLMarkup {
         }
         row += "</tr>";
 
+        ArrayList<String> emptyValues = []
+        if (values.size() == 0) {
+            for (String k: keys) {
+                emptyValues.add(null)
+            }
+            values.add(emptyValues)
+        }
         int lineCount = 0;
         for (ArrayList<String> val : values) {
             int count = 0;
@@ -196,7 +205,12 @@ public class HTMLMarkup {
                     row += "<td>" + createNumberInputField(keys.get(count)+"_###_"+lineCount, v) + "</td>";
                 }
                 else {
-                    row += "<td>" + createInputField(keys.get(count)+"_###_"+lineCount, v, moduleType) + "</td>";
+                    if (keys.get(count).toLowerCase().find("year") || keys.get(count).toLowerCase().find("cost")) {
+                        row += "<td>" + createInputField(keys.get(count)+"_###_"+lineCount, v, "unit") + "</td>";
+                    }
+                    else {
+                        row += "<td>" + createInputField(keys.get(count)+"_###_"+lineCount, v, moduleType) + "</td>";
+                    }
                 }
                 count++;
             }

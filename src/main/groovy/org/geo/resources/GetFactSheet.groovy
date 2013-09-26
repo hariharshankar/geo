@@ -70,9 +70,11 @@ public class GetFactSheet {
         String returnValue = "";
 
         returnValue += HTMLMarkup.createHiddenField("Description_ID", descriptionId, "")
+        returnValue += HTMLMarkup.createHiddenField("Type_ID", typeId, "")
+        returnValue += HTMLMarkup.createHiddenField("Country_ID", countryId, "")
+        returnValue += HTMLMarkup.createHiddenField("State_ID", stateId, "")
 
         for (String f : features.split(",")) {
-            println(f)
             String moduleHtml = getModuleForFeature(f);
             if (moduleHtml != null) {
                 if (!moduleHtml.equals("")) {
@@ -82,7 +84,7 @@ public class GetFactSheet {
                     String module = moduleTemplate.replace("{{module_id}}", f);
                     module = module.replace("{{module_heading}}", f);
                     module = module.replace("{{module_content}}", moduleHtml);
-                    if (f.matches("Environmental_Issues|Comments|References|Unit_Description"))
+                    if (f.matches("Environmental_Issues|Comments|References|Unit_Description|Upgrade|Owner_Details"))
                         module = module.replace("{{module_header_class}}", "single-row-module");
                     else
                         module = module.replace("{{module_header_class}}", "generic-module");
@@ -91,12 +93,10 @@ public class GetFactSheet {
             }
         }
 
-
         String html = template.replace("{{content}}", returnValue);
         if (geoName != null) {
             html = html.replace("{{title}}", geoName);
         }
-
         return html;
     }
 
@@ -115,8 +115,14 @@ public class GetFactSheet {
         else if (feature.contains("Identifiers")) {
             return makeIdentifiersModule(feature);
         }
-        else if (feature.matches("Environmental_Issues|Comments|References")) {
+        else if (feature.matches("Environmental_Issues|Comments|References|Upgrade")) {
             return makeSingleRowModule(feature);
+        }
+        else if (feature.matches("Owner_Details")) {
+            String html = ""
+            html += makeSingleRowModule("Owners")
+            html += makeGenericModule(feature)
+            return html
         }
         else {
             return makeGenericModule(feature);
@@ -157,10 +163,11 @@ public class GetFactSheet {
 
             if (geo.getValueForKey("Name_omit", 0) != null) {
                 geoName = geo.getValueForKey("Name_omit", 0);
+                println(geoName)
                 String ret = HTMLMarkup.createEditableRow("Name_omit", geoName, typeName+"_Description", true);
-                if (ret != null && !ret.equals("")) {
-                    returnValue += "<tr>" + ret + "</tr>";
-                }
+                //if (ret != null && !ret.equals("")) {
+                returnValue += "<tr>" + ret + "</tr>";
+                //}
             }
             for (String k : keys) {
                 if (k.contains("_itf")) {
@@ -254,7 +261,8 @@ public class GetFactSheet {
             returnValue = HTMLMarkup.createSpreadSheetRow(keys, values, typeName+"_"+feature, "");
         }
         catch (Exception e) {
-            println(e);
+            //println(e.getStackTrace());
+            println(e.getMessage())
         }
         return returnValue;
     }

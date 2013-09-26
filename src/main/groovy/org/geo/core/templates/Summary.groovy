@@ -5,6 +5,7 @@ package org.geo.core.templates;
  */
 public class Summary {
 
+    /*
     public static String getTemplate() {
 
         String template = "";
@@ -30,4 +31,5 @@ public class Summary {
 
         return template;
     }
+    */
 }

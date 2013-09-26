@@ -8,6 +8,11 @@ body {
     height: auto;
 }
 
+.information {
+    text-align: center;
+    width: 600px;
+}
+
 .ui-widget {
     font: 0.9em "EB Garamond", Georgia, serif !important;
 }

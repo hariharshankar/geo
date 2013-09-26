@@ -31,6 +31,8 @@ Search = {
             k = data['keys'][1]
         else
             k = data['keys'][0]
+
+        var elementContentClass = element + "Content" 
             
         for (var v in data['values']) {
             var value = data['values'][v]
@@ -40,14 +42,17 @@ Search = {
             else
                 v = value[0]
             if (Search[element].toLowerCase() == v.toLowerCase()) 
-                select += "<div class='ui-widget-content ui-selected'>"+v+"</div>";
+                select += "<div class='ui-widget-content ui-selected "+elementContentClass+"'>"+v+"</div>";
             else
-                select += "<div class='ui-widget-content'>"+v+"</div>";
+                select += "<div class='ui-widget-content "+elementContentClass+"'>"+v+"</div>";
         }
         $("#"+element).append(select)
 
         heading = "<h3 class='ui-widget-header module-header searchSelectableHeader'>"+k+"</h3>";
         $("#"+element).before(heading)
+        $("."+elementContentClass).click(function() {
+            $(this).addClass("ui-selected").siblings().removeClass("ui-selected")
+        })
     },
 
     getUserValues: function() {
@@ -129,6 +134,11 @@ Search = {
             
         var id = $(t).attr("id")
 
+        Search.selectableIds.push($(t).attr("id"))
+        Search.createSelectables($(t).next())
+        
+        
+        /*
         $(t).selectable({
             selected: function(event, ui) {
             },
@@ -137,6 +147,7 @@ Search = {
                 Search.createSelectables($(t).next())
             }
         });
+        */
     },
     
     plantListPostData: {},
@@ -216,8 +227,31 @@ Form = {
             .click(function(event) {
                 event.preventDefault();
                 var parentTable = $(this).parent().children().first()
-                var newRow = $(this).parent().children().first().find(".single-rows").first().html()
-                parentTable.append(newRow)
+                var newRow = $(parentTable).find(".single-rows").last().html()
+                newRow = "<tr>" + newRow + "</tr>"
+                var indexElement = $(newRow).children().first()
+                var index = parseInt(indexElement.html()) + 1
+                indexElement.html(index.toString())
+
+                var n = ""
+                n += "<td>" + indexElement.html() + "</td>"
+                for (var i=1, c; c=$(newRow).children()[i]; i++) {
+                    var t = $(c).children().first()
+                    $(t).attr("value", "")
+                    var elementName = $(t).attr("name").split("_###_")[0] + "_###_" + index
+                    $(t).attr("name", elementName)
+                    $(t).attr("id", elementName)
+
+                    n += "<td>" + $(t)[0].outerHTML + "</td>"
+                }
+
+                $("<tr class='single-rows'>"+n+"</tr>").insertAfter($(parentTable).find(".single-rows").last())
+                $(parentTable).children().first().children().each( function() {
+                    if ($(this).attr && $(this).attr("type") == "hidden") {
+                        var v = parseInt($(this).attr("value")) + 1
+                        $(this).attr("value", v.toString())
+                    }
+                })
             })
 
         $(".remove-single-row-button")
@@ -703,6 +737,16 @@ Map = {
         }
     },
 
+    showLatLng: function(lat, lng) {
+        var html = ""
+        html += "<b>Latitude:</b>&nbsp;<input type='text' size='10' name='Latitude_Start' id='Latitude_Start' value='"+lat+"' />&nbsp;"
+        html += "<b>Longitude:</b>&nbsp;<input type='text' size='10' name='Longitude_Start' id='Longitude_Start' value='"+lng+"' />&nbsp;"
+
+        html += "<br/>"
+
+        $("#overlay-details").prepend(html)
+    },
+
     init: function(showDrawingTools) {
 
         if( document.getElementById('map-container') == undefined )
@@ -763,6 +807,7 @@ Map = {
                 // adjusting the map bounds for a single location map
                 // TODO: set zoom level
                 if (searchLocation == null || searchLocation == "") {
+                    Map.showLatLng(lat, lng)
                     geoCoder.geocode({'location': new google.maps.LatLng(lat, lng)}, Map.getMapBounds)
                 }
                 marker = new google.maps.Marker({
