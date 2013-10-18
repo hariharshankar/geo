@@ -3,7 +3,7 @@ package org.geo.resources
 import com.yammer.metrics.annotation.Timed
 import org.geo.core.db.Geo
 import org.geo.core.db.Select
-import org.geo.core.utils.HTMLMarkup
+import org.geo.core.serializations.html.Html
 import org.geo.core.utils.Tokens
 
 import javax.ws.rs.GET
@@ -45,8 +45,8 @@ class GetSearchMap {
         }
 
         String content = "";
-        content += HTMLMarkup.createHiddenField("map_json", Tokens.BASE_URL+"services/json/map?country_id="+countryId+"&type_id="+typeId, "widget_urls");
-        String html = org.geo.core.templates.Map.getTemplate();
+        content += Html.createHiddenField("map_json", Tokens.BASE_URL+"services/json/map?country_id="+countryId+"&type_id="+typeId, "widget_urls");
+        String html = org.geo.core.serializations.html.templates.Map.getTemplate();
         html = html.replace("{{content}}", content);
         return html;
     }

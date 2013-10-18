@@ -26,7 +26,7 @@ class Metadata {
         String sqlParams = "?,?"
 
         Select select = new Select()
-        Map<String, String> columnNames = select.readColumnName(tableName, null)
+        LinkedHashMap<String, String> columnNames = select.readColumnName(tableName, null)
         select.close()
         for (String k : columnNames.keySet()) {
             if (!data.get(k))

@@ -1,8 +1,8 @@
 package org.geo.resources
 
+import org.geo.core.GeoSystem
 import org.geo.core.db.GeoPoint;
 import org.geo.core.db.Moderation
-import org.geo.core.db.SeedInfo;
 import org.geo.core.db.Select;
 import org.geo.core.db.Geo;
 import org.geo.core.services.MapLocations;
@@ -12,7 +12,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
 
 /**
  * @author: Harihar Shankar, 5/1/13 7:18 PM
@@ -23,7 +22,7 @@ import java.util.ArrayList;
 public class GetMapJson {
 
     @GET
-    public MapLocations getMapJson(@QueryParam("country_id") final String countryId,
+    public static MapLocations getMapJson(@QueryParam("country_id") final String countryId,
                              @QueryParam("type_id") final String typeId,
                              @QueryParam("description_id") final String descriptionId) {
 
@@ -71,17 +70,16 @@ public class GetMapJson {
 
     public static MapLocations getMapJsonForDescriptionId(@QueryParam("description_id") final String descriptionId) {
 
-        //ArrayList<ArrayList<String>> loc = new ArrayList<ArrayList<String>>(2);
         ArrayList<GeoPoint> loc = new ArrayList<GeoPoint>(2);
 
-        SeedInfo seedInfo = new SeedInfo(Integer.parseInt(descriptionId))
-        Map<String,String> type = seedInfo.getType()
+        GeoSystem geoSystem = new GeoSystem(Integer.parseInt(descriptionId))
+        Map<String,String> type = geoSystem.getType()
         String typeName = type.get("typeName")
 
-        Map<String,String> country = seedInfo.getCountry()
+        Map<String,String> country = geoSystem.getCountry()
         String countryName = country.get("countryName")
 
-        Map<String,String> state = seedInfo.getState()
+        Map<String,String> state = geoSystem.getState()
         String stateName = state.get("stateName")
 
         // fetching lat lng from the _Location table
@@ -113,10 +111,6 @@ public class GetMapJson {
         Geo descriptionSearchResult = description.read(typeName + "_Description", "Name_omit", "Description_ID=" + descriptionId);
         String name = descriptionSearchResult.getValueForKey("Name_omit", 0);
 
-        //ArrayList<String> rev = new ArrayList<String>(1);
-        //rev.add(0, latitude);
-        //rev.add(1, longitude);
-        //rev.add(2, name);
         GeoPoint gp = new GeoPoint(Double.parseDouble(latitude), Double.parseDouble(longitude), name, overlays);
         loc.add(gp);
 

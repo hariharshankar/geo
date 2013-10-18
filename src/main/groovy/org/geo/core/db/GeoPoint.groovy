@@ -44,12 +44,10 @@ class GeoPoint implements Serializable {
         return overlays;
     }
 
-    /*
     @Override
     public String toString(){
-        return "("+lat+", "+lng+")";
+        return "["+lat+", "+lng+"]";
     }
-    */
 
     /**
      * We consider that two point are equals if both latitude and longitude are "nearly" the same.

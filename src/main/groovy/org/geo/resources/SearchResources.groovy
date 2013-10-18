@@ -1,8 +1,8 @@
 package org.geo.resources
 
 import com.yammer.metrics.annotation.Timed
-import org.geo.core.templates.Search
-import org.geo.core.utils.HTMLMarkup
+import org.geo.core.serializations.html.templates.Search
+import org.geo.core.serializations.html.Html
 import org.geo.core.utils.Tokens;
 
 import javax.ws.rs.GET;
@@ -48,8 +48,8 @@ public class SearchResources {
 
         //json services for type, country, state and plant list
 
-        leftPaneContent += HTMLMarkup.createHiddenField("jsonListService", Tokens.BASE_URL + "services/json/list", "")
-        leftPaneContent += HTMLMarkup.createHiddenField("jsonMapService", Tokens.BASE_URL + "services/json/map", "")
+        leftPaneContent += Html.createHiddenField("jsonListService", Tokens.BASE_URL + "services/json/list", "")
+        leftPaneContent += Html.createHiddenField("jsonMapService", Tokens.BASE_URL + "services/json/map", "")
 
         //right pane tabs
         String rightPaneTabs = "";

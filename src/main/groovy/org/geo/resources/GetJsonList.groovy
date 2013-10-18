@@ -23,7 +23,7 @@ class GetJsonList {
     private static List<String> KEY_TYPE = ["Type", "Country", "State", "plant_list"]
 
     @POST
-    public Geo getJsonList (final Map requestData) {
+    public static Geo getJsonList (final Map requestData) {
 
         Set<String> requestKeys = requestData.keySet()
         Geo result = new Geo();

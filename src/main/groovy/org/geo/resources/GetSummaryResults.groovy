@@ -2,9 +2,9 @@ package org.geo.resources;
 
 import com.yammer.metrics.annotation.Timed;
 import org.geo.core.db.Select;
-import org.geo.core.db.Geo;
-import org.geo.core.templates.SearchResults;
-import org.geo.core.utils.HTMLMarkup;
+import org.geo.core.db.Geo
+import org.geo.core.serializations.html.templates.SearchResults;
+import org.geo.core.serializations.html.Html;
 import org.geo.core.utils.Tokens;
 
 import javax.ws.rs.GET;
@@ -48,10 +48,10 @@ public class GetSummaryResults {
         }
 
         String content = "";
-        content += HTMLMarkup.createHiddenField("summary_json", Tokens.BASE_URL+"services/json/summary?country_id="+countryId+"&type_id="+typeId, "widget_urls");
-        content += HTMLMarkup.createHiddenField("map_json", Tokens.BASE_URL+"services/json/map?country_id="+countryId+"&type_id="+typeId, "widget_urls");
-        content += HTMLMarkup.createHiddenField("performance_linechart_cumulative_json_url", Tokens.BASE_URL+"services/json/linechart?country_id="+countryId+"&type_id="+typeId+"&module=performance&fields=Total_Gigawatt_Hours_Generated_nbr,CO2_Emitted_(Tonnes)_nbr&chart=cumulative", "widget_urls");
-        content += HTMLMarkup.createHiddenField("unit_linechart_cumulative_json_url", Tokens.BASE_URL+"services/json/linechart?country_id="+countryId+"&type_id="+typeId+"&module=unit&fields=Capacity_(MWe)_nbr&chart=cumulative", "widget_urls");
+        content += Html.createHiddenField("summary_json", Tokens.BASE_URL+"services/json/summary?country_id="+countryId+"&type_id="+typeId, "widget_urls");
+        content += Html.createHiddenField("map_json", Tokens.BASE_URL+"services/json/map?country_id="+countryId+"&type_id="+typeId, "widget_urls");
+        content += Html.createHiddenField("performance_linechart_cumulative_json_url", Tokens.BASE_URL+"services/json/linechart?country_id="+countryId+"&type_id="+typeId+"&module=performance&fields=Total_Gigawatt_Hours_Generated_nbr,CO2_Emitted_(Tonnes)_nbr&chart=cumulative", "widget_urls");
+        content += Html.createHiddenField("unit_linechart_cumulative_json_url", Tokens.BASE_URL+"services/json/linechart?country_id="+countryId+"&type_id="+typeId+"&module=unit&fields=Capacity_(MWe)_nbr&chart=cumulative", "widget_urls");
 
 
         String template = SearchResults.getTemplate();

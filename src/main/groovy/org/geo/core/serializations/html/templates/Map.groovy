@@ -1,4 +1,4 @@
-package org.geo.core.templates
+package org.geo.core.serializations.html.templates
 
 /**
  @author: Harihar Shankar, 8/7/13 9:33 AM

@@ -2,10 +2,10 @@
 
 case `uname` in
   CYGWIN*)
-    CP=$( echo `dirname $0`/../lib/*.jar . | sed 's/ /;/g')
+    CP=$( echo `dirname $0`/../target/*.jar . | sed 's/ /;/g')
     ;;
   *)
-    CP=$( echo `dirname $0`/../lib/*.jar . | sed 's/ /:/g')
+    CP=$( echo `dirname $0`/../target/*.jar . | sed 's/ /:/g')
 esac
 
 # Find Java

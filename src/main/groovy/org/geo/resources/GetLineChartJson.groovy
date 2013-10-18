@@ -3,15 +3,12 @@ package org.geo.resources;
 import org.geo.core.db.Moderation;
 import org.geo.core.db.Select;
 import org.geo.core.db.Geo;
-import org.geo.core.services.LineChart;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * @author: Harihar Shankar, 5/1/13 8:00 PM
@@ -22,7 +19,7 @@ import java.util.HashMap;
 public class GetLineChartJson {
 
     @GET
-    public Geo getLineChartJson(@QueryParam("country_id") final String countryId,
+    public static Geo getLineChartJson(@QueryParam("country_id") final String countryId,
                                 @QueryParam("type_id") final String typeId,
                                 @QueryParam("module") final String module,
                                 @QueryParam("fields") final String fields,

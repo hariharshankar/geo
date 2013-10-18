@@ -86,7 +86,7 @@ public class Select {
             }
 
             if (keys.size() == 0) {
-                Map<String,String> k = readColumnName(tableName, null);
+                LinkedHashMap<String,String> k = readColumnName(tableName, null);
 
                 keys.addAll(k.keySet());
             }
@@ -122,9 +122,9 @@ public class Select {
         return read(tableName, null, null, null, null);
     }
 
-    public Map<String, String> readColumnName(String tableName, String whereClause) {
+    public LinkedHashMap<String, String> readColumnName(String tableName, String whereClause) {
 
-        Map<String,String> returnValues = new HashMap<String, String>();
+        LinkedHashMap<String,String> returnValues = new LinkedHashMap<String, String>();
 
         String sql = "SHOW COLUMNS FROM " + tableName;
         if (whereClause != null) {

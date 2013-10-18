@@ -1,7 +1,6 @@
 package org.geo.resources
 
 import org.geo.core.db.Geo
-import org.geo.core.db.Moderation
 import org.geo.core.db.Select
 
 import javax.ws.rs.Consumes
@@ -23,7 +22,7 @@ import javax.ws.rs.core.MediaType
 class GetJsonSummary {
 
     @GET
-    public Geo getJsonSummary(@QueryParam("country_id") final String countryId,
+    public static Geo getJsonSummary(@QueryParam("country_id") final String countryId,
                                 @QueryParam("type_id") String typeId) {
 
         Geo summary = new Geo()

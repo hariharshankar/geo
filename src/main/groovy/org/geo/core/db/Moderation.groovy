@@ -7,40 +7,6 @@ package org.geo.core.db
 
 public class Moderation {
 
-    public Integer getParentPlantId(final Integer descriptionId) {
-        Select history = new Select()
-        Geo historyGeo = history.read("History", "Parent_Plant_ID", "Description_ID=" + descriptionId)
-        Integer parentPlantID = Integer.parseInt(historyGeo.getValueForKey("Parent_Plant_ID", 0))
-        history.close()
-        return parentPlantID
-    }
-
-    public Integer getLatestRevisionId(final Integer parentPlantID) {
-
-        Select history = new Select();
-        Geo historyGeo = history.read("History", "", "Parent_Plant_ID=" + parentPlantID + " AND Accepted=" + 1, "Description_ID DESC", "0,1");
-
-        Integer descriptionID = Integer.parseInt(historyGeo.getValueForKey("Description_ID", 0));
-        history.close()
-        return descriptionID;
-    }
-
-
-    public ArrayList<Integer> getAllRevisionIds(final Integer parentPlantID) {
-
-        Select history = new Select();
-        Geo historyGeo = history.read("History", "", "Parent_Plant_ID=" + parentPlantID + " AND Accepted=" + 1, "Description_ID DESC");
-
-        Integer rowCount = historyGeo.getRowCount();
-        ArrayList<Integer> revisions = new ArrayList<Integer>(rowCount);
-        for (int i=0; i<rowCount; i++)
-            revisions.add(Integer.parseInt(historyGeo.getValueForKey("Description_ID", i)));
-
-        history.close()
-        return revisions;
-    }
-
-
     public Geo getAllRevisionsForTypeAndCountry(final Integer countryId, final Integer typeId) {
 
         Select history = new Select();

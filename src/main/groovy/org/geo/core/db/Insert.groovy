@@ -93,7 +93,7 @@ public class Insert {
         String sqlFields = "`Description_ID`"
         String sqlParams = "?"
 
-        Map<String, String> columnNames = new Select().readColumnName(tableName, null)
+        LinkedHashMap<String, String> columnNames = new Select().readColumnName(tableName, null)
         for (String k : columnNames.keySet()) {
             if (!formData.get(k))
                 continue
@@ -128,7 +128,7 @@ public class Insert {
     private static Integer insertPerformanceModule(String tableName, final MultivaluedMap<String, String> formData) {
 
         tableName = tableName.replace("_Annual", "")
-        Map<String, String> columnNames = new Select().readColumnName(tableName, null)
+        LinkedHashMap<String, String> columnNames = new Select().readColumnName(tableName, null)
 
         for (int year=Tokens.ANNUAL_PERFORMANCE_DECADE_END; year>=Tokens.ANNUAL_PERFORMANCE_DECADE_START; year--) {
             ArrayList<Object> sqlValues = [];
@@ -174,7 +174,7 @@ public class Insert {
 
     private static Integer insertRowColumnModule(final String tableName, final MultivaluedMap<String, String> formData) {
 
-        Map<String, String> columnNames = new Select().readColumnName(tableName, null)
+        LinkedHashMap<String, String> columnNames = new Select().readColumnName(tableName, null)
 
         println(tableName)
         if (formData.get("numberOf"+tableName) == null)

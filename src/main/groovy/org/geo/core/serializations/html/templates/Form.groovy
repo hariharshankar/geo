@@ -1,4 +1,4 @@
-package org.geo.core.templates;
+package org.geo.core.serializations.html.templates;
 
 import org.geo.core.utils.Tokens;
 
