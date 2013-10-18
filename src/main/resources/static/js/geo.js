@@ -226,30 +226,35 @@ Form = {
             .button()
             .click(function(event) {
                 event.preventDefault();
-                var parentTable = $(this).parent().children().first()
-                var newRow = $(parentTable).find(".single-rows").last().html()
-                newRow = "<tr>" + newRow + "</tr>"
-                var indexElement = $(newRow).children().first()
-                var index = parseInt(indexElement.html()) + 1
-                indexElement.html(index.toString())
+                //var parentTable = $(this).parent().children().first()
+                $(this).parent().children().each( function() {
+                    if ($(this)[0].tagName.toLowerCase() == "table") {
+                        var parentTable = $(this) 
+                        var newRow = $(parentTable).find(".single-rows").last().html()
+                        newRow = "<tr>" + newRow + "</tr>"
+                        var indexElement = $(newRow).children().first()
+                        var index = parseInt(indexElement.html()) + 1
+                        indexElement.html(index.toString())
 
-                var n = ""
-                n += "<td>" + indexElement.html() + "</td>"
-                for (var i=1, c; c=$(newRow).children()[i]; i++) {
-                    var t = $(c).children().first()
-                    $(t).attr("value", "")
-                    var elementName = $(t).attr("name").split("_###_")[0] + "_###_" + index
-                    $(t).attr("name", elementName)
-                    $(t).attr("id", elementName)
+                        var n = ""
+                        n += "<td>" + indexElement.html() + "</td>"
+                        for (var i=1, c; c=$(newRow).children()[i]; i++) {
+                            var t = $(c).children().first()
+                            $(t).attr("value", "")
+                            var elementName = $(t).attr("name").split("_###_")[0] + "_###_" + index
+                            $(t).attr("name", elementName)
+                            $(t).attr("id", elementName)
 
-                    n += "<td>" + $(t)[0].outerHTML + "</td>"
-                }
+                            n += "<td>" + $(t)[0].outerHTML + "</td>"
+                        }
 
-                $("<tr class='single-rows'>"+n+"</tr>").insertAfter($(parentTable).find(".single-rows").last())
-                $(parentTable).children().first().children().each( function() {
-                    if ($(this).attr && $(this).attr("type") == "hidden") {
-                        var v = parseInt($(this).attr("value")) + 1
-                        $(this).attr("value", v.toString())
+                        $("<tr class='single-rows'>"+n+"</tr>").insertAfter($(parentTable).find(".single-rows").last())
+                        $(parentTable).children().first().children().each( function() {
+                            if ($(this).attr && $(this).attr("type") == "hidden") {
+                                var v = parseInt($(this).attr("value")) + 1
+                                $(this).attr("value", v.toString())
+                            }
+                        })
                     }
                 })
             })
@@ -631,25 +636,46 @@ Map = {
     mapStrokeWeight: 1,
     overlaysArray: [],
 
-    addOverlayDetails: function(overlayType, overlayArea, overlayLength, overlayNumber) {
+    addOverlayDetails: function(overlayType, overlayArea, overlayLength, overlayNumber, points) {
         var overlayColor = Map.mapColors[overlayNumber]
         var details = "";
         details += "<div id='overlay_"+overlayNumber+"' name='overlay_"+overlayNumber+"' >";
         details += "<span id='overlay_color_"+overlayNumber+"' name='overlay_color_"+overlayNumber+"' style='background: "+overlayColor+"; width: 10px; height: 10px;'>&nbsp;&nbsp;&nbsp;</span>&nbsp;"
         details += "<span>Area: <b>"+overlayArea+" km<sup>2</sup></b>&nbsp;|&nbsp;"
-        details += "<span>Description: <input type='input' size='15' id='overlay_description_"+overlayNumber+"' name='overlay_description_"+overlayNumber+"' />";
+        details += "<span>Description: <input type='input' size='15' id='Overlay_Name_###_"+overlayNumber+"' name='Overlay_Name_###_"+overlayNumber+"' />";
         details += "</div>";
+        details += this.createHiddenHtmlElement("Color_###_"+overlayNumber, overlayColor)
+        details += this.createHiddenHtmlElement("Points_###_"+overlayNumber, points)
+        details += this.createHiddenHtmlElement("Overlay_Type_###_"+overlayNumber, overlayType)
+        overlayCounter = Map.overlaysCount + 1
+        if (!document.getElementById("numberOfCoal_Overlays")) {
+            details += this.createHiddenHtmlElement("numberOfCoal_Overlays", overlayCounter)
+        }
+        else {
+            $("numberOfCoal_Overlays").attr("value", overlayCounter)
+        }
+
         $("#overlay-details").append(details);
     },
 
-    updateOverlayData: function(overlay, overlayType) {
+    updateOverlayData: function(overlay, overlayType, overlayNumber) {
+        var overlayPoints = overlay.getPath().getArray()
+        var points = ""
+        for (var i=0,p; p=overlayPoints[i]; i++) {
+            points += "[" + p.lat() + "," + p.lng() + "],"
+        }
+        // removing the trailing comma
+        points = points.substr(0, points.length-1)
+
+        points = "[" + points + "]"
+        
         overlayArea = google.maps.geometry.spherical.computeArea(overlay.getPath())
         overlayLength = google.maps.geometry.spherical.computeLength(overlay.getPath())
 
-        Map.addOverlayDetails(overlayType, overlayArea, overlayLength, Map.overlaysCount)
+        Map.addOverlayDetails(overlayType, overlayArea, overlayLength, Map.overlaysCount, points)
     },
 
-    addOverlayEvents: function(overlay, overlayType) {
+    addOverlayEvents: function(overlay, overlayType, overlayNumber) {
         google.maps.event.addListener(overlay, "mouseover", function() {
             overlay.setEditable(true)
         })
@@ -657,10 +683,10 @@ Map = {
             overlay.setEditable(false)
         })
         google.maps.event.addListener(overlay.getPath(), "insert_at", function() {
-            Map.updateOverlayData(overlay, overlayType)
+            Map.updateOverlayData(overlay, overlayType, overlayNumber)
         })
         google.maps.event.addListener(overlay.getPath(), "set_at", function() {
-            Map.updateOverlayData(overlay, overlayType)
+            Map.updateOverlayData(overlay, overlayType, overlayNumber)
         })
     },
 
@@ -692,8 +718,8 @@ Map = {
             event.overlay.setOptions({'options': options})
             overlayType = drawingManager.getDrawingMode()
         
-            Map.addOverlayEvents(event.overlay, overlayType)
-            Map.updateOverlayData(event.overlay, overlayType)
+            Map.addOverlayEvents(event.overlay, overlayType, Map.overlaysCount)
+            Map.updateOverlayData(event.overlay, overlayType, Map.overlaysCount)
 
             Map.overlaysCount++
         })
@@ -709,14 +735,15 @@ Map = {
         }
     },
 
+    createHiddenHtmlElement: function(name, value) {
+        return '<input type="hidden" name="'+name+'" id="'+name+'" value="'+value+'" />';
+    },
+
     drawSavedOverlays: function(overlays) {
+        var overlayHtml = []
         for (var o in overlays) {
             var overlay = overlays[o]
             var pointsString = overlay.points
-            // ugly hack to eval the string as json array
-            // TODO: make the overlay points in db as json array
-            pointsString = pointsString.replace(/\(/g, "[")
-            pointsString = pointsString.replace(/\)/g, "]")
 
             var points = eval(pointsString)
             var pointsArray = []
@@ -731,10 +758,21 @@ Map = {
                 strokeWeight: Map.mapStrokeWeight,
                 map: Map.map
             })
+            var overlayNumber = parseInt(o) + 1
+            /*
+            overlayHtml.push(this.createHiddenHtmlElement("Color_###_"+overlayNumber, overlays[o].color))
+            overlayHtml.push(this.createHiddenHtmlElement("Opacity_###_"+overlayNumber, overlays[o].opacity))
+            overlayHtml.push(this.createHiddenHtmlElement("Weight_###_"+overlayNumber, overlays[o].weight))
+            overlayHtml.push(this.createHiddenHtmlElement("Points_###_"+overlayNumber, overlays[o].points))
+            overlayHtml.push(this.createHiddenHtmlElement("Overlay_Type_###_"+overlayNumber, overlays[o].overlayType))
+            overlayHtml.push(this.createHiddenHtmlElement("Overlay_Name_###_"+overlayNumber, overlays[o].overlayName))
+            */
             Map.addOverlayEvents(Map.overlaysArray[Map.overlaysCount], overlays[o].overlayType)
-            Map.updateOverlayData(Map.overlaysArray[Map.overlaysCount], overlays[o].overlayType)
+            Map.updateOverlayData(Map.overlaysArray[Map.overlaysCount], overlays[o].overlayType, overlayNumber)
             Map.overlaysCount++;
         }
+        //overlayHtml.push(this.createHiddenHtmlElement("numberOfCoal_Overlays", overlays.length))
+        //$("#overlay-details").append(overlayHtml.join(""))
     },
 
     showLatLng: function(lat, lng) {
