@@ -639,6 +639,7 @@ Map = {
     addOverlayDetails: function(overlayType, overlayArea, overlayLength, overlayNumber, points) {
         var overlayColor = Map.mapColors[overlayNumber]
         var details = "";
+        overlayNumber = parseInt(overlayNumber) + 1
         details += "<div id='overlay_"+overlayNumber+"' name='overlay_"+overlayNumber+"' >";
         details += "<span id='overlay_color_"+overlayNumber+"' name='overlay_color_"+overlayNumber+"' style='background: "+overlayColor+"; width: 10px; height: 10px;'>&nbsp;&nbsp;&nbsp;</span>&nbsp;"
         details += "<span>Area: <b>"+overlayArea+" km<sup>2</sup></b>&nbsp;|&nbsp;"
