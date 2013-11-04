@@ -18,8 +18,10 @@ class Search {
 '''
         template += "<link rel=\"stylesheet\" href=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/css/custom-theme/jquery-ui-1.10.2.custom.min.css\">\n";
         template += "<link rel=\"stylesheet\" href=\""+ Tokens.STATIC_BASE_URL+"static/css/geo.css\">\n";
+        template += "<link rel=\"stylesheet\" href=\""+ Tokens.STATIC_BASE_URL+"static/chosen_v1.0.0/chosen.min.css\">\n";
         template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/js/jquery-1.9.1.js\"></script>\n";
         template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/jquery-ui-1.10.2.custom/js/jquery-ui-1.10.2.custom.min.js\"></script>\n";
+        template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/chosen_v1.0.0/chosen.jquery.min.js\"></script>\n";
         template += "<script src=\""+ Tokens.STATIC_BASE_URL+"static/js/geo.js\"></script>\n";
         template += "<script src=\"http://d3js.org/d3.v3.js\"></script>";
         /*

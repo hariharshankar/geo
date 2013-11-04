@@ -1,5 +1,10 @@
 package org.geo.core.db
 
+import org.geo.core.Geo
+import org.geo.core.GeoSystem
+
+import java.sql.Connection
+
 /**
  * @author: Harihar Shankar, 4/30/13 6:55 PM
  */
@@ -7,10 +12,16 @@ package org.geo.core.db
 
 public class Moderation {
 
+    private Connection connection
+
+    public Moderation(Connection connection) {
+        this.connection = connection
+    }
+
     public Geo getAllRevisionsForTypeAndCountry(final Integer countryId, final Integer typeId) {
 
         Select history = new Select();
-        Geo historyGeo = history.read("History", "distinct(Parent_Plant_ID)", "Country_ID=" + countryId + " AND Type_ID=" + typeId + " AND Accepted=1");
+        Geo historyGeo = history.read(connection, "History", "distinct(Parent_Plant_ID)", "Country_ID=" + countryId + " AND Type_ID=" + typeId + " AND Accepted=1");
 
         Integer rowCount = historyGeo.getRowCount();
 
@@ -22,19 +33,19 @@ public class Moderation {
 
         for (int i=0; i<rowCount; i++) {
             ArrayList<String> v = new ArrayList<String>(1);
-            String descriptionId = getLatestRevisionId(Integer.parseInt(historyGeo.getValueForKey("Parent_Plant_ID", i))).toString();
+            GeoSystem geoSystem = new GeoSystem(connection, Integer.parseInt(historyGeo.getValueForKey("Parent_Plant_ID",i)))
+            String descriptionId = geoSystem.getLatestRevisionId().toString()
 
-            // TYPE values
-            final Select type =  new Select();
-            final Geo typeGeo = type.read("Type", null, "Type_ID=" + typeId);
-            type.close()
-            final String typeName = typeGeo.getValueForKey("Type", 0);
+            Select typeDAO = new Select()
+            Geo type = typeDAO.read(connection, "Type", null, "Type_ID="+typeId)
+            if (!type) {
+                return null
+            }
+            String typeName = type.getValueForKey("Type", 0)
 
             Select description = new Select();
-            Geo descriptionSearchResult = description.read(typeName + "_Description", "Name_omit", "Description_ID=" + descriptionId);
+            Geo descriptionSearchResult = description.read(connection, typeName + "_Description", "Name_omit", "Description_ID=" + descriptionId);
             String name = descriptionSearchResult.getValueForKey("Name_omit", 0);
-
-            description.close()
             v.add(descriptionId)
             v.add(name)
 
@@ -44,27 +55,23 @@ public class Moderation {
         Geo revisions = new Geo();
         revisions.setKeys(keys)
         revisions.setValues(values)
-        history.close()
         return revisions;
     }
 
     public Geo getTypeForDb(final String databaseType) {
         Select type = new Select();
-        Geo typeGeo = type.read("Type", "Type_ID,Type", "Database_Type='"+databaseType+"'", "Type_ID ASC")
-        type.close()
+        Geo typeGeo = type.read(connection, "Type", "Type_ID,Type", "Database_Type='"+databaseType+"'", "Type_ID ASC")
         return typeGeo
     }
 
 
     public Geo getCountryForType(final String type) {
         Select typeSelect = new Select();
-        Geo typeGeo = typeSelect.read("Type", "Type_ID", "Type='"+type+"'")
+        Geo typeGeo = typeSelect.read(connection, "Type", "Type_ID", "Type='"+type+"'")
         String typeId = typeGeo.getValueForKey("Type_ID", 0)
-        typeSelect.close()
 
         Select history = new Select();
-        Geo historyGeo = history.read("History", "distinct(Country_ID)", "Type_ID="+typeId)
-        history.close()
+        Geo historyGeo = history.read(connection, "History", "distinct(Country_ID)", "Type_ID="+typeId)
         Integer numberOfCountries = historyGeo.getRowCount()
 
         ArrayList<String> keys = new ArrayList<String>();
@@ -76,9 +83,8 @@ public class Moderation {
         for (int c=0; c<numberOfCountries; c++) {
             String countryId = historyGeo.getValueForKey("Country_ID", c)
             Select countrySelect = new Select();
-            Geo countryGeo = countrySelect.read("Country", "Country_ID,Country", "Country_ID="+countryId)
+            Geo countryGeo = countrySelect.read(connection, "Country", "Country_ID,Country", "Country_ID="+countryId)
 
-            countrySelect.close()
 
             ArrayList<String> v = new ArrayList<String>(1);
             v.add(countryGeo.getValueForKey("Country_ID", 0))
@@ -94,21 +100,18 @@ public class Moderation {
 
     public Geo getStateForCountry(final String country) {
         Select countrySelect = new Select();
-        Geo countryGeo = countrySelect.read("Country", "Country_ID", "Country LIKE '"+country+"'")
+        Geo countryGeo = countrySelect.read(connection, "Country", "Country_ID", "Country LIKE '"+country+"'")
         String countryId = countryGeo.getValueForKey("Country_ID", 0);
-        countrySelect.close()
 
         Select stateSelect = new Select();
-        Geo stateGeo = stateSelect.read("State", "State_ID,State", "Country_ID="+countryId)
-        stateSelect.close()
+        Geo stateGeo = stateSelect.read(connection, "State", "State_ID,State", "Country_ID="+countryId)
         return stateGeo
     }
 
-    public Geo getDatabaseType(){
+    public Geo getDatabaseType() {
 
         Select type = new Select();
-        Geo typeGeo = type.read("Type", "distinct(Database_Type)", "", "")
-        type.close()
+        Geo typeGeo = type.read(connection, "Type", "distinct(Database_Type)", "", "")
         return typeGeo
     }
 }

@@ -1,7 +1,7 @@
 package org.geo.core.utils;
 
 import org.geo.core.db.DbConnection;
-import org.geo.core.db.Geo;
+import org.geo.core.Geo;
 import org.geo.core.db.GeoPoint;
 import org.geo.core.db.Select;
 
@@ -53,18 +53,16 @@ public class DecodeGeoPoly {
 
     public static void main(String[] args) {
         final String overlaysTemplate = "_Overlays";
+        Connection connection = new DbConnection().getConnection();
 
         Select type = new Select();
-        Geo geoType = type.read("Type");
+        Geo geoType = type.read(connection, "Type");
         int t = 0;
-        Connection connection;
-
-        connection = new DbConnection().getConnection();
         for (int i=0; i<geoType.getRowCount(); i++) {
             String typeName = geoType.getValueForKey("Type", i);
             Select overlay = new Select();
             String tableName = typeName + overlaysTemplate;
-            Geo geoOverlay = overlay.read(tableName, "Overlay_ID,Points");
+            Geo geoOverlay = overlay.read(connection, tableName, "Overlay_ID,Points");
 
             for (int o=0; o<geoOverlay.getRowCount(); o++) {
                 t++;
@@ -92,5 +90,4 @@ public class DecodeGeoPoly {
         }
         System.out.println(t);
     }
-
 }

@@ -1,6 +1,6 @@
 package org.geo.resources
 
-import org.geo.core.db.Geo
+import org.geo.core.Geo
 import org.geo.core.db.Select
 
 import javax.ws.rs.Consumes
@@ -9,6 +9,7 @@ import javax.ws.rs.Path
 import javax.ws.rs.Produces
 import javax.ws.rs.QueryParam
 import javax.ws.rs.core.MediaType
+import java.sql.Connection
 
 /**
  @author: Harihar Shankar, 8/7/13 10:45 AM
@@ -21,31 +22,40 @@ import javax.ws.rs.core.MediaType
 
 class GetJsonSummary {
 
+    private final Connection connection;
+
+    public GetJsonSummary(Connection connection) {
+        this.connection = connection
+    }
+
     @GET
-    public static Geo getJsonSummary(@QueryParam("country_id") final String countryId,
+    public Geo getJsonSummary(@QueryParam("country_id") final String countryId,
                                 @QueryParam("type_id") String typeId) {
 
-        Geo summary = new Geo()
-
-        Select select = new Select()
-
-        if (Integer.parseInt(countryId) <= 0) {
+        Select countryDAO = new Select()
+        Geo country = countryDAO.read(this.connection, "Country", null, "Country_ID="+countryId)
+        if (!country) {
             return null
         }
-        if (typeId == null) {
-            typeId = 0
+        String cId = country.getValueForKey("Country_ID", 0)
+
+        Select typeDAO = new Select()
+        Geo type = typeDAO.read(this.connection, "Type", null, "Type_ID="+typeId)
+        if (!type) {
+            return null
         }
-        String whereClause = "Country_ID=" + countryId
+        String tId = type.getValueForKey("Type_ID", 0)
+        String whereClause = "Country_ID=" + cId
         String selectClause = null
-        if (Integer.parseInt(typeId) > 0) {
-            whereClause += " AND Type_ID=" + typeId
+        if (tId > 0) {
+            whereClause += " AND Type_ID=" + tId
         }
         else {
             selectClause = "Type_ID,Country_ID,Number_of_Plants,Cumulative_Capacity"
         }
 
-        summary = select.read("metadata", selectClause, whereClause)
-        select.close()
+        Select selectDAO = new Select()
+        Geo summary = selectDAO.read(this.connection, "metadata", selectClause, whereClause)
         return summary
     }
 

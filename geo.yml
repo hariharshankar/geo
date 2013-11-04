@@ -1,4 +1,19 @@
-server:
-  applicationConnectors:
-    - type: http
-      port: 8000
+
+database:
+    driverClass: com.mysql.jdbc.Driver
+    user: geo
+    password: 0p3nM0d3!
+    url: jdbc:mysql://localhost:3306/geoDev
+
+logging:
+
+    # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+    level: INFO
+
+    # Logger-specific levels.
+    loggers:
+
+        # Sets the level for 'com.example.app' to DEBUG.
+        com.example.app: DEBUG
+
+        org.hibernate.SQL: ALL

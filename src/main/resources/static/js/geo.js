@@ -6,6 +6,12 @@ var Summary;
 var Geo;
 
 Geo = {
+    searchDatabase_Type_Default: "PowerPlants",
+    searchType_Default: "coal",
+    searchCountry_Default: "india", 
+    searchState_Default: "all",
+    searchTab_Default: "summary",
+
     getUrlParameter: function(name) {
         return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
     },
@@ -17,13 +23,48 @@ Geo = {
 
 Search = {
 
-    searchDatabase_Type: (Geo.getUrlParameter("database_type") == null) ? "" : Geo.getUrlParameter("database_type"),
-    searchType: (Geo.getUrlParameter("type") == null) ? "" : Geo.getUrlParameter("type"),
-    searchCountry: (Geo.getUrlParameter("country") == null) ? "" : Geo.getUrlParameter("country"),
-    searchState: (Geo.getUrlParameter("state") == null) ? "" : Geo.getUrlParameter("state"),
+    searchDatabase_Type: "",
+    searchType: "",
+    searchCountry: "",
+    searchState: "",
+    searchTab: "",
 
     selectableIds: [],
 
+    createHtmlForSelectables: function (element, data) {
+        select = "";
+        var k = ""
+        if (data["keys"].length == 2)
+            k = data['keys'][1]
+        else
+            k = data['keys'][0]
+
+        var elementContentClass = element + "Content" 
+            
+        select += "<select data-placeholder='Choose a "+k+"'class='chosen-select' style='width: 90%;'>"
+        for (var v in data['values']) {
+            var value = data['values'][v]
+            var v = ""
+            if (value.length == 2)
+                v = value[1]
+            else
+                v = value[0]
+            if (v && Search[element].toLowerCase() == v.toLowerCase()) 
+                select += "<option class='ui-widget-content ui-selected "+elementContentClass+"' value='"+v+"' selected='selected'>"+v+"</option>";
+            else
+                select += "<option class='ui-widget-content "+elementContentClass+"' value='"+v+"'>"+v+"</option>";
+        }
+        select += "</select>"
+        $(select).insertAfter("#"+element)
+        $(".chosen-select").chosen()
+
+        heading = "<h3 class='ui-widget-header module-header searchSelectableHeader'>"+k+"</h3>";
+        $("#"+element).before(heading)
+        $("."+elementContentClass).click(function() {
+            $(this).addClass("ui-selected").siblings().removeClass("ui-selected")
+        })
+    },
+    /*
     createHtmlForSelectables: function (element, data) {
         select = "";
         var k = ""
@@ -54,13 +95,19 @@ Search = {
             $(this).addClass("ui-selected").siblings().removeClass("ui-selected")
         })
     },
-
+    */
     getUserValues: function() {
 
         params = {}
         $(".searchSelectable").each(function() {
             var key = $(this).attr("id").replace("search", "").toLowerCase()
+            /*
             var value = $(this).children(".ui-selected").text()
+            if (value != "") {
+                params[key] = value.toLowerCase()
+            }
+            */
+            var value = $(this).next().next().find(".chosen-single").text()
             if (value != "") {
                 params[key] = value.toLowerCase()
             }
@@ -99,13 +146,33 @@ Search = {
             beforeLoad: function (event, ui) {
                 // reset the url to take new config params
                 params = {}
-                params['database_type'] = Search.searchDatabase_Type
-                params['type'] = Search.searchType
-                params['country'] = Search.searchCountry
-                params['state'] = Search.searchState
+                params['type'] = Geo.getUrlParameter("type")
+                params['country'] = Geo.getUrlParameter("country")
+                params['state'] = Geo.getUrlParameter("state")
+
+                var tab = ui.tab.text().split(" ")[0].toLowerCase()
+                if (tab != Geo.getUrlParameter("tab")) {
+                    event.preventDefault()
+                    if (!event.originalEvent) {
+                        console.log("cancelled: " + tab)
+                        return
+                    }
+                    params['tab'] = tab
+                    var url = Geo.getPageUrl() + "?" + $.param(params)
+                    document.location.href = url
+                }
                 ui.ajaxSettings.url = ui.ajaxSettings.url + "?" + $.param(params)
             }
         });
+        var reqTab = Search.searchTab
+        var i=0
+        $("#rightPaneTabs ul li").each( function() {
+            var tabTitle = $(this).text().toLowerCase()
+            if(tabTitle.search(reqTab.toLowerCase()) >= 0) {
+                $("#rightPaneTabs").tabs({active: i})
+            }
+            i++
+        })
     },
 
     createSelectables: function(t) {
@@ -153,17 +220,66 @@ Search = {
     plantListPostData: {},
 
     init: function() {
+        var shdReloadPage = false
+        var params = {}
+        if (Geo.getUrlParameter("database_type") == null) {
+            params['database_type'] = Geo.searchDatabase_Type_Default 
+            shdReloadPage = true
+        }
+        else {
+            params['database_type'] = Geo.getUrlParameter("database_type")
+        }
+
+        if (Geo.getUrlParameter("type") == null) {
+            params['type'] = Geo.searchType_Default
+            shdReloadPage = true
+        }
+        else {
+            params['type'] = Geo.getUrlParameter("type")
+        }
+        if (Geo.getUrlParameter("country") == null) {
+            params['country'] = Geo.searchCountry_Default
+            shdReloadPage = true
+        }
+        else {
+            params['country'] = Geo.getUrlParameter("country")
+        }
+        if (Geo.getUrlParameter("state") == null) {
+            params['state'] = Geo.searchState_Default
+            shdReloadPage = true
+        }
+        else {
+            params['state'] = Geo.getUrlParameter("state")
+        }
+
+        if (Geo.getUrlParameter("tab") == null) {
+            params['tab'] = Geo.searchTab_Default
+            shdReloadPage = true
+        }
+        else {
+            params['tab'] = Geo.getUrlParameter("tab")
+        }
+        if (shdReloadPage) {
+            window.location.href = window.location.href.split("?")[0] + "?" + $.param(params)
+            return;
+        }
+        Search.searchDatabase_Type = params['database_type']
+        Search.searchType = params['type']
+        Search.searchCountry = params['country']
+        Search.searchState = params['state']
+        Search.searchTab = params['tab']
+
         Search.createSelectables($(".searchSelectable").first())
 
         $("#updateSearch")
-            .button()
-            .click (function(event) {
-                event.preventDefault()
-                params = Search.getUserValues()
-                base_url = Geo.getPageUrl()
-                updateUrl = base_url + "?" + $.param(params)
-                window.location.href = updateUrl
-            })
+        .button()
+        .click (function(event) {
+            event.preventDefault()
+            params = Search.getUserValues()
+            base_url = Geo.getPageUrl()
+            updateUrl = base_url + "?" + $.param(params)
+            window.location.href = updateUrl
+        })
     }
 }
 
@@ -222,6 +338,19 @@ Form = {
             $(this).next().append(Form.createSingleRowButtons());
         });
 
+        /*
+        $(".single-rows").parent().each( function() {
+            $(this).children().first().each( function() {
+                $(this).first().prepend("<th></th>")
+            })
+        })
+
+        $(".single-rows").each( function() {
+            var checkbox = "<td><input type='checkbox'></td>"
+            $(this).prepend(checkbox)
+        })
+        */
+
         $(".add-single-row-button")
             .button()
             .click(function(event) {
@@ -232,41 +361,78 @@ Form = {
                         var parentTable = $(this) 
                         var newRow = $(parentTable).find(".single-rows").last().html()
                         newRow = "<tr>" + newRow + "</tr>"
+                        
+                        /*
                         var indexElement = $(newRow).children().first()
                         var index = parseInt(indexElement.html()) + 1
                         indexElement.html(index.toString())
-
+                        */
+                        
+                        var index = 0;
+                        $(parentTable).children().first().children().each( function() {
+                            if ($(this).attr && $(this).attr("type") == "hidden") {
+                                index = parseInt($(this).attr("value")) + 1
+                                $(this).attr("value", index.toString())
+                            }
+                        })
                         var n = ""
-                        n += "<td>" + indexElement.html() + "</td>"
-                        for (var i=1, c; c=$(newRow).children()[i]; i++) {
-                            var t = $(c).children().first()
-                            $(t).attr("value", "")
-                            var elementName = $(t).attr("name").split("_###_")[0] + "_###_" + index
-                            $(t).attr("name", elementName)
-                            $(t).attr("id", elementName)
-
-                            n += "<td>" + $(t)[0].outerHTML + "</td>"
+                        for (var i=0, c; c=$(newRow).children()[i]; i++) {
+                            if ($(c).children().length > 0) {
+                                var t = $(c).children().first()
+                                $(t).attr("value", "")
+                                if ($(t).attr("name")) {
+                                    var elementName = $(t).attr("name").split("_###_")[0] + "_###_" + index
+                                    $(t).attr("name", elementName)
+                                    $(t).attr("id", elementName)
+                                    n += "<td>" + $(t)[0].outerHTML + "</td>"
+                                }
+                            }
+                            else if (i == 1) {
+                                n += "<td>" + index + "</td>"
+                            }
                         }
 
                         $("<tr class='single-rows'>"+n+"</tr>").insertAfter($(parentTable).find(".single-rows").last())
-                        $(parentTable).children().first().children().each( function() {
-                            if ($(this).attr && $(this).attr("type") == "hidden") {
-                                var v = parseInt($(this).attr("value")) + 1
-                                $(this).attr("value", v.toString())
-                            }
-                        })
                     }
                 })
             })
+
 
         $(".remove-single-row-button")
             .button()
             .click(function(event) {
                 event.preventDefault();
-                //var parentTable = $(this).parent().children().first()
-                //var newRow = $(this).parent().children().first().find(".single-rows").first().html()
-                //parentTable.append(newRow)
+                $(this).parent().parent().find(".single-rows").each( function() {
+                    if ($(this).children().first().children().first()[0].checked) {
+                        $(this).parent().parent().children().first().children().each( function() {
+                            if ($(this).attr && $(this).attr("type") == "hidden") {
+                                var v = parseInt($(this).attr("value")) - 1
+                                $(this).attr("value", v.toString())
+                            }
+                        })
+                        $(this).remove()
+                    }
+                })
+                var i =0
+                $(this).parent().parent().find(".single-rows").each( function() {
+                    i++
+                    var k=0;
+                    $(this).children().each( function() {
+                        k++
+                        var ele = $(this).children().first()
+                        var id = ele.attr("id")
+                        if (id && id.search("_###_") > 0) {
+                            ele.attr("id", id.split("_###_")[0] + "_###_" + i)
+                            ele.attr("name", id.split("_###_")[0] + "_###_" + i)
+                        }
+                        else if (k == 2) {
+                            ele.context.innerHTML = i
+                        }
+                    })
+                })
+                    
             })
+
 
         Map.init(true);
         Form.initPerformance();
@@ -311,6 +477,7 @@ Chart = {
         $("#"+tableContainer).append(html)
     },
 
+    /*
     plotPieChart: function(pieData, chartContainer) {
 
         var data = []
@@ -355,7 +522,7 @@ Chart = {
         .style("text-anchor", "middle")
         .text(function(d) { return d.data; });
     },
-
+    */
     /*
     plotBubbleChart: function(bubbleData, chartContainer) {
         var values = []
@@ -670,7 +837,7 @@ Map = {
 
         points = "[" + points + "]"
         
-        overlayArea = google.maps.geometry.spherical.computeArea(overlay.getPath())
+        overlayArea = Math.round(google.maps.geometry.spherical.computeArea(overlay.getPath()) / 10000) / 100
         overlayLength = google.maps.geometry.spherical.computeLength(overlay.getPath())
 
         Map.addOverlayDetails(overlayType, overlayArea, overlayLength, Map.overlaysCount, points)
@@ -874,28 +1041,28 @@ Summary = {
         var w = $("#"+tableContainer).width();
 
         var html = ''
-        html += "<table style='width: 100%; height: 100%; overflow: auto;' class='line-html-table'>";
+        html += "<table style='width: 50%; height: 100%; overflow: auto; margin: auto;' class='line-html-table'>";
         html += "<tr>";
         html += "<td class='line-html-table-years'>Total Number of Plants: </td>";
-
-        html += "<td align='center'>"+numberOfPlants+"</td>";
+        html += "<td align='right'>"+numberOfPlants+"</td>";
         html += "</tr>";
         
         html += "<tr>";
         html += "<td class='line-html-table-years'>Total Cumulative Capacity: </td>";
-
-        html += "<td align='center'>"+cumulativeCapacity+"</td>";
+        html += "<td align='right'>"+cumulativeCapacity+"</td>";
         html += "</tr>";
-        html += "</table>";
-        //$("#"+tableContainer).append(html)
+        html += "<tr style='height: 10px;' />";
+        html += "<tr/>";
+
+        html += "<tr>";
+        html += "<td colspan='2' class='line-html-table-years' style='font-weight: bold; font-size: 1.2em;'>Cumulative Capacity by Type (in MWe)</td>";
+        html += "</tr>";
 
         var url = $("#summary_json").attr("value")
         url = url.replace(new RegExp(".type_id=[0-9]{1,2}"), "")
-        console.log(url)
         $.getJSON(url, function(d) {
             cumulativeCapacity = {}
             numberOfPlants = {}
-            console.log(d)
             for (j=0,k; k=d.keys[j]; j++) {
                 if (k.search("Cumulative_Capacity") == 0) {
                     for (i=0; i<d.values.length; i++) {
@@ -907,6 +1074,12 @@ Summary = {
                             }
                         }
                         cumulativeCapacity[type] = d.values[i][j]
+                        
+                        html += "<tr>";
+                        html += "<td class='line-html-table-years'>"+type+": </td>";
+                        html += "<td align='right'>"+d.values[i][j]+"</td>";
+                        html += "</tr>";
+        
                     }
                 }
                 else if (k.search("Number_of_Plants") == 0) {
@@ -915,7 +1088,9 @@ Summary = {
                     }
                 }
             }
-            Chart.plotBubbleChart(cumulativeCapacity, tableContainer)
+            html += "</table>";
+            $("#"+tableContainer).append(html)
+            //Chart.plotBubbleChart(cumulativeCapacity, tableContainer)
         })
     },
 

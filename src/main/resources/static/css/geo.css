@@ -29,6 +29,7 @@ body {
 .ui-tabs-panel {
     padding: 0 !important;
     margin: 0;
+    width: 95%;
 }
 
 #searchWrapper {
@@ -100,7 +101,7 @@ body {
 }
 
 th {
-    font-size: 0.8em;
+    font-size: 0.9em;
 }
 
 
@@ -205,8 +206,23 @@ table.line-html-table {
   overflow-x: scroll;
 }
 
+.odd-row {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
 .even-row {
   background-color: #EAE8E8;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.tab-content {
+    font-size: 1.1em;
+}
+
+.row-number {
+    padding: 10px;
 }
 
 #map-resize {

@@ -1,8 +1,8 @@
 package org.geo.resources;
 
 import com.yammer.metrics.annotation.Timed;
-import org.geo.core.db.Select;
-import org.geo.core.db.Geo
+import org.geo.core.Geo
+import org.geo.core.db.Select
 import org.geo.core.serializations.html.templates.SearchResults;
 import org.geo.core.serializations.html.Html;
 import org.geo.core.utils.Tokens;
@@ -11,7 +11,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MediaType
+import java.sql.Connection;
 
 /**
  * @author: Harihar Shankar, 4/29/13 10:09 PM
@@ -20,6 +21,12 @@ import javax.ws.rs.core.MediaType;
 @Path("/summary")
 @Produces(MediaType.TEXT_HTML)
 public class GetSummaryResults {
+
+    private Connection connection
+
+    public GetSummaryResults(Connection connection) {
+        this.connection = connection
+    }
 
     @Timed
     @GET
@@ -30,7 +37,7 @@ public class GetSummaryResults {
         String html = "";
 
         Select type = new Select();
-        Geo typeGeo = type.read("Type", "", "Type LIKE '" + typ + "'", "", "0,1");
+        Geo typeGeo = type.read(connection, "Type", "", "Type LIKE '" + typ + "'", "", "0,1");
         String typeName = typeGeo.getValueForKey("Type", 0);
         String typeId = typeGeo.getValueForKey("Type_ID", 0);
 
@@ -39,7 +46,7 @@ public class GetSummaryResults {
         }
 
         Select country = new Select();
-        Geo countryGeo = country.read("Country", "", "Country LIKE '" + cntry + "'", "", "0,1");
+        Geo countryGeo = country.read(connection, "Country", "", "Country LIKE '" + cntry + "'", "", "0,1");
         String countryName = countryGeo.getValueForKey("Country", 0);
         String countryId = countryGeo.getValueForKey("Country_ID", 0);
 

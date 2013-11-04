@@ -3,11 +3,10 @@ package org.geo.core.utils
 import org.codehaus.jettison.json.JSONArray
 import org.codehaus.jettison.json.JSONObject
 import org.geo.core.db.DbConnection
-import org.geo.core.db.Geo
+import org.geo.core.Geo
 import org.geo.core.db.Moderation
 import org.geo.core.db.Select
 
-import java.sql.Blob
 import java.sql.Connection
 import java.sql.PreparedStatement
 
@@ -16,9 +15,8 @@ import java.sql.PreparedStatement
  */
 class Metadata {
 
-    private static boolean insertToTable(final String tableName, final HashMap<String, Object> data) {
+    private static boolean insertToTable(Connection connection, final String tableName, final HashMap<String, Object> data) {
 
-        Connection connection = new DbConnection().getConnection();
         ArrayList<Object> sqlValues = [];
         ArrayList<String> sqlValuesType = [];
         String sqlStatement = "INSERT INTO " + tableName + " (";
@@ -26,8 +24,7 @@ class Metadata {
         String sqlParams = "?,?"
 
         Select select = new Select()
-        LinkedHashMap<String, String> columnNames = select.readColumnName(tableName, null)
-        select.close()
+        LinkedHashMap<String, String> columnNames = select.readColumnName(connection, tableName, null)
         for (String k : columnNames.keySet()) {
             if (!data.get(k))
                 continue
@@ -53,7 +50,8 @@ class Metadata {
             else if (sqlValuesType.get(i).find("double"))
                 statement.setDouble(i+3, Double.parseDouble(sqlValues.get(i)))
             else if (sqlValuesType.get(i).find("blob")) {
-                InputStream is = new ByteArrayInputStream(sqlValues.get(i).getBytes())
+                String val = sqlValues.get(i)
+                InputStream is = new ByteArrayInputStream(val.getBytes())
                 statement.setBlob(i+3, is)
             }
             else
@@ -61,18 +59,20 @@ class Metadata {
         }
         statement.execute()
         statement.close()
-        connection.close()
+        return true
     }
 
 
     public static void main(String[] args) {
+
+        Connection connection = new DbConnection().getConnection();
 
         ArrayList<ArrayList<String>> fields = []
         fields.add(["_Performance", "Year_yr","Total_Gigawatt_Hours_Generated_nbr"])
         fields.add(["_Performance", "Year_yr", "CO2_Emitted_(Tonnes)_nbr"])
         fields.add(["_Unit_Description", "Date_Commissioned_dt", "Capacity_(MWe)_nbr"])
 
-        Moderation moderation = new Moderation()
+        Moderation moderation = new Moderation(connection)
 
         Geo typesGeo = moderation.getTypeForDb("PowerPlants")
         for (ArrayList<String> types : typesGeo.getValues()) {
@@ -119,14 +119,16 @@ class Metadata {
                         Select gwh = new Select();
                         Geo gwhGeo
                         try {
-                            gwhGeo = gwh.read(typeName + field.get(0), f, "Description_ID=" + descriptionId);
+                            gwhGeo = gwh.read(connection, typeName + field.get(0), f, "Description_ID=" + descriptionId);
                         }
                         catch (Exception e1) {
-                            println(e1.getMessage())
-                            gwh.close()
+                            println("WARNING: " + e1.getMessage())
                             break
                         }
-                        gwh.close()
+
+                        if (!gwhGeo) {
+                            break;
+                        }
 
                         Integer gwhYears = gwhGeo.getRowCount();
 
@@ -215,9 +217,7 @@ class Metadata {
                 */
 
 
-                insertToTable("metadata", [Type_ID: typeId, Country_ID: countryId, Number_of_Plants: numberOfPlants, New_Capacity_Added: tableFields["New_Capacity_Added"].toString(), Annual_Gigawatt_Hours_Generated: tableFields['Annual_Gigawatt_Hours_Generated'], Annual_CO2_Emitted: tableFields['Annual_CO2_Emitted'], Cumulative_Capacity: total_added])
-
-                //break;
+                insertToTable(connection, "metadata", [Type_ID: typeId, Country_ID: countryId, Number_of_Plants: numberOfPlants, New_Capacity_Added: tableFields["New_Capacity_Added"].toString(), Annual_Gigawatt_Hours_Generated: tableFields['Annual_Gigawatt_Hours_Generated'], Annual_CO2_Emitted: tableFields['Annual_CO2_Emitted'], Cumulative_Capacity: total_added])
             } // country
             //break;
         } // type

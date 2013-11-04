@@ -1,25 +1,22 @@
 package org.geo.core.db
 
-import java.sql.*;
+import org.geo.core.Geo
+
+import java.sql.Connection
+import java.sql.ResultSet
+import java.sql.ResultSetMetaData
+import java.sql.SQLException
+import java.sql.Statement
 
 /**
- * @author: Harihar Shankar, 4/18/13 7:02 PM
+ @author: Harihar Shankar, 11/3/13 5:01 PM
  */
 
-public class Select {
+class Select {
 
-    private Connection connection;
+    private String sqlQuery;
 
-    public Select() {
-        connection = new DbConnection().getConnection();
-    }
-
-
-    public void close() {
-        connection.close()
-    }
-
-    public Geo read(String tableName, String selectValues, String whereClause, String sortClause, String limitClause) {
+    public Geo read(Connection connection, String tableName, String selectValues, String whereClause, String sortClause, String limitClause) {
 
         if (tableName == null || tableName.equals("")) {
             return null;
@@ -51,6 +48,7 @@ public class Select {
         }
 
         String sql = "";
+        Statement statement = connection.createStatement();
         try {
             sql = "SELECT " + selectValues + " FROM " + tableName + " WHERE " + whereClause;
             if (sortClause != null) {
@@ -64,7 +62,7 @@ public class Select {
                 }
             }
 
-            Statement statement = connection.createStatement();
+            this.sqlQuery = sql;
             ResultSet resultSet = statement.executeQuery(sql);
 
             ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
@@ -86,43 +84,43 @@ public class Select {
             }
 
             if (keys.size() == 0) {
-                LinkedHashMap<String,String> k = readColumnName(tableName, null);
+                LinkedHashMap<String,String> k = readColumnName(connection, tableName, null);
 
                 keys.addAll(k.keySet());
             }
-
-            statement.close();
-            connection.close();
-
             geo.setKeys(keys);
             geo.setValues(values);
+            resultSet.close()
         }
         catch (SQLException ex) {
             //System.out.println(sql);
             System.out.println(ex.getMessage());
             //TODO sql errors
+            return null
         }
-
+        finally {
+            statement.close()
+        }
         return geo;
     }
 
-    public Geo read(String tableName, String selectValues, String whereClause, String sortClause) {
-        return read(tableName, selectValues, whereClause, sortClause, null);
+    public Geo read(Connection connection, String tableName, String selectValues, String whereClause, String sortClause) {
+        return read(connection, tableName, selectValues, whereClause, sortClause, null);
     }
 
-    public Geo read(String tableName, String selectValues, String whereClause) {
-        return read(tableName, selectValues, whereClause, null, null);
+    public Geo read(Connection connection, String tableName, String selectValues, String whereClause) {
+        return read(connection, tableName, selectValues, whereClause, null, null);
     }
 
-    public Geo read(String tableName, String selectValues) {
-        return read(tableName, selectValues, null, null, null);
+    public Geo read(Connection connection, String tableName, String selectValues) {
+        return read(connection, tableName, selectValues, null, null, null);
     }
 
-    public Geo read(String tableName) {
-        return read(tableName, null, null, null, null);
+    public Geo read(Connection connection, String tableName) {
+        return read(connection, tableName, null, null, null, null);
     }
 
-    public LinkedHashMap<String, String> readColumnName(String tableName, String whereClause) {
+    public static LinkedHashMap<String, String> readColumnName(Connection connection, String tableName, String whereClause) {
 
         LinkedHashMap<String,String> returnValues = new LinkedHashMap<String, String>();
 
@@ -133,8 +131,8 @@ public class Select {
             }
         }
 
+        Statement statement = connection.createStatement()
         try {
-            Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
 
             while (resultSet.next()) {
@@ -145,7 +143,13 @@ public class Select {
             System.out.println(ex.getMessage());
             //TODO sql errors
         }
+        finally {
+            statement.close()
+        }
         return returnValues;
     }
 
+    public String getSqlQuery() {
+        return this.sqlQuery
+    }
 }

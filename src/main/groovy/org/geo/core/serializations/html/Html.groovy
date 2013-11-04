@@ -1,10 +1,12 @@
 package org.geo.core.serializations.html
 
 import org.geo.core.GeoSystem
-import org.geo.core.db.Geo;
-import org.geo.core.db.Select
+import org.geo.core.Geo
+import org.geo.core.db.Select;
 import org.geo.core.serializations.html.templates.Form
-import org.geo.core.utils.Tokens;
+import org.geo.core.utils.Tokens
+
+import java.sql.Connection;
 
 /**
  * @author: Harihar Shankar, 4/22/13 7:33 PM
@@ -12,6 +14,7 @@ import org.geo.core.utils.Tokens;
 
 public class Html {
 
+    private Connection connection
     private String descriptionId
     private String typeId
     private String countryId
@@ -22,22 +25,39 @@ public class Html {
     private String countryName;
     private String stateName;
     private String typeDatabaseName;
-    private GeoSystem geoSystem;
+    private String features;
 
-    public Html(final String descriptionId) {
+
+    public Html(Connection connection, final String descriptionId) {
+        this.connection = connection
         this.descriptionId = descriptionId
-        geoSystem = new GeoSystem(Integer.parseInt(descriptionId))
+        GeoSystem geoSystem = new GeoSystem(connection, Integer.parseInt(descriptionId))
 
-        typeId = geoSystem.getType().get("typeId");
-        typeName = geoSystem.getType().get("typeName");
-        typeDatabaseName = geoSystem.getType().get("typeDatabaseName");
+        typeId = geoSystem.getTypeId().toString()
+        Select typeDAO = new Select()
+        Geo type = typeDAO.read(connection, "Type", null, "Type_ID="+typeId)
 
-        countryId = geoSystem.getCountry().get("countryId");
-        countryName = geoSystem.getCountry().get("countryName");
+        typeName = type.getValueForKey("Type", 0);
+        typeDatabaseName = type.getValueForKey("Database_Type", 0);
+        features = this.getFeatures(typeId);
 
-        stateId = geoSystem.getState().get("stateId");
-        stateName = geoSystem.getState().get("stateName");
+        countryId = geoSystem.getCountryId().toString();
 
+        Select countryDAO = new Select()
+        Geo country = countryDAO.read(connection, "Country", null, "Country_ID="+countryId);
+        countryName = country.getValueForKey("Country", 0)
+
+        stateId = geoSystem.getStateId().toString();
+        Select stateDAO = new Select()
+        Geo state = stateDAO.read(connection, "State", null, "State_ID="+stateId)
+        stateName = state.getValueForKey("State", 0);
+    }
+
+    private String getFeatures(String typeId) {
+        final Select typeFeatures =  new Select();
+        final Geo typeFeaturesGeo = typeFeatures.read(connection, "Type_Features", null, "Type_ID=" + typeId);
+        final String features = typeFeaturesGeo.getValueForKey("Features", 0);
+        return features
     }
 
     private static String normalizeToken (String token) {
@@ -55,7 +75,6 @@ public class Html {
     public String generateFactSheet() {
 
         // TypeFeatures table
-        final String features = geoSystem.getFeatures()
         String template = Form.getTemplate();
         StringBuilder returnValue = new StringBuilder();
 
@@ -78,9 +97,9 @@ public class Html {
                 String moduleTemplate = Form.getModuleTemplate();
 
                 String module = moduleTemplate.replace("{{module_id}}", f);
-                module = module.replace("{{module_heading}}", f);
+                module = module.replace("{{module_heading}}", f.replace("_", " "));
                 module = module.replace("{{module_content}}", moduleHtml.toString());
-                if (f.matches("Environmental_Issues|Comments|References|Unit_Description|Upgrade|Owner_Details"))
+                if (f.matches("Environmental_Issues|Comments|References|Unit_Description|Upgrades|Owner_Details"))
                     module = module.replace("{{module_header_class}}", "single-row-module");
                 else
                     module = module.replace("{{module_header_class}}", "generic-module");
@@ -109,7 +128,7 @@ public class Html {
         else if (feature.contains("Identifiers")) {
             return makeIdentifiersModule(feature);
         }
-        else if (feature.matches("Environmental_Issues|Comments|References|Upgrade")) {
+        else if (feature.matches("Environmental_Issues|Comments|References|Upgrades")) {
             return makeSingleRowModule(feature);
         }
         else if (feature.matches("Owner_Details")) {
@@ -129,7 +148,7 @@ public class Html {
 
         Select select = new Select();
         try {
-            final Geo geo = select.read(typeName + "_" + feature, null, "Description_ID=" + descriptionId);
+            final Geo geo = select.read(connection, typeName + "_" + feature, null, "Description_ID=" + descriptionId);
             ArrayList<String> keys = geo.getKeys();
 
             for (final String k : keys) {
@@ -154,7 +173,7 @@ public class Html {
 
         Select select = new Select();
         try {
-            final Geo geo = select.read(typeName + "_Description", null, "Description_ID=" + descriptionId);
+            final Geo geo = select.read(connection, typeName + "_Description", null, "Description_ID=" + descriptionId);
             ArrayList<String> keys = geo.getKeys();
 
             if (geo.getValueForKey("Name_omit", 0) != null) {
@@ -180,7 +199,7 @@ public class Html {
         StringBuilder returnValue = new StringBuilder();
         Select s = new Select();
         try {
-            final Geo geo = s.read(typeName + "_" + feature, null, "Description_ID=" + descriptionId);
+            final Geo geo = s.read(connection, typeName + "_" + feature, null, "Description_ID=" + descriptionId);
             ArrayList<String> keys = geo.getKeys();
             ArrayList<ArrayList<String>> values = geo.getValues();
 
@@ -236,7 +255,7 @@ public class Html {
         StringBuilder returnValue = new StringBuilder();
 
         Select s = new Select();
-        final Geo geo = s.read(typeName + "_Performance", null, "Description_ID=" + descriptionId);
+        final Geo geo = s.read(connection, typeName + "_Performance", null, "Description_ID=" + descriptionId);
 
         ArrayList<String> keys = geo.getKeys();
         ArrayList<ArrayList<String>> values = geo.getValues();
@@ -250,7 +269,7 @@ public class Html {
         StringBuilder returnValue = new StringBuilder();
         Select s = new Select();
         try {
-            final Geo geo = s.read(typeName + "_" + feature, null, "Description_ID=" + descriptionId);
+            final Geo geo = s.read(connection, typeName + "_" + feature, null, "Description_ID=" + descriptionId);
             ArrayList<String> keys = geo.getKeys();
             ArrayList<ArrayList<String>> values = geo.getValues();
 
@@ -268,13 +287,12 @@ public class Html {
     }
 
 
-    private static String createEnumField(String key, String value, String tableName) {
+    private String createEnumField(String key, String value, String tableName) {
         StringBuilder row = new StringBuilder();
 
         String dbKey = key.split("_###_")[0]
         Select s = new Select();
-        LinkedHashMap<String, String> en = s.readColumnName(tableName, dbKey);
-        s.close()
+        LinkedHashMap<String, String> en = s.readColumnName(connection, tableName, dbKey);
 
         String eV = en.get(dbKey).replace("enum(", "");
         eV = eV.substring(0, eV.length()-1);
@@ -308,12 +326,12 @@ public class Html {
         return row.toString();
     }
 
-    private static String createSetField(String key, String value, String tableName) {
+    private String createSetField(String key, String value, String tableName) {
         StringBuilder row = new StringBuilder();
 
         Select s = new Select();
-        LinkedHashMap<String, String> en = s.readColumnName(tableName, key);
-        s.close()
+        LinkedHashMap<String, String> en = s.readColumnName(connection, tableName, key);
+
         String eV = en.get(key).replace("set(", "");
         eV = eV.substring(0, eV.length()-1);
 
@@ -350,7 +368,7 @@ public class Html {
             return  "<input type=\"text\" name=\""+key+"\" id=\""+key+"\" value=\""+value+"\" size=\"100\" />";
     }
 
-    public static String createEditableRow(String key, String value, String tableName, Boolean itf) {
+    public String createEditableRow(String key, String value, String tableName, Boolean itf) {
 
         if (value == null)
             value = "";
@@ -412,10 +430,19 @@ public class Html {
     }
 
 
-    public static String createSpreadSheetRow(ArrayList<String> keys, ArrayList<ArrayList<String>> values, String tableName, String moduleType) {
+    public String createSpreadSheetRow(ArrayList<String> keys, ArrayList<ArrayList<String>> values, String tableName, String moduleType) {
         StringBuilder row = new StringBuilder();
         row.append("<tr>");
-        row.append("<th>#</th>");
+
+        // check box heading
+        row.append("<th></th>")
+
+        if (tableName.contains("Owners")) {
+            row.append("<th>Owner #</th>")
+        }
+        else {
+            row.append("<th>#</th>");
+        }
 
         for (String k : keys) {
             if (shouldDisplay(k)) {
@@ -435,6 +462,7 @@ public class Html {
         for (ArrayList<String> val : values) {
             int count = 0;
             row.append("<tr class='single-rows'>");
+            row.append("<td><input type=\"checkbox\" id=\""+tableName+"_###_"+lineCount+"\" name=\""+tableName+"_###_"+lineCount+"\"></td>")
             row.append("<td>" + Integer.toString(++lineCount) + "</td>");
             for (String v : val) {
                 if (!shouldDisplay(keys.get(count))) {

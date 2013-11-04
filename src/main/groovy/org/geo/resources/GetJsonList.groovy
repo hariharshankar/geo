@@ -1,6 +1,6 @@
 package org.geo.resources
 
-import org.geo.core.db.Geo
+import org.geo.core.Geo
 import org.geo.core.db.Moderation
 import org.geo.core.db.Select
 
@@ -9,6 +9,7 @@ import javax.ws.rs.POST
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
 import javax.ws.rs.core.MediaType
+import java.sql.Connection
 
 /**
  @author: Harihar Shankar, 7/2/13 1:00 PM
@@ -21,9 +22,14 @@ import javax.ws.rs.core.MediaType
 class GetJsonList {
 
     private static List<String> KEY_TYPE = ["Type", "Country", "State", "plant_list"]
+    private Connection connection
+
+    public GetJsonList(Connection connection) {
+        this.connection = connection
+    }
 
     @POST
-    public static Geo getJsonList (final Map requestData) {
+    public Geo getJsonList (final Map requestData) {
 
         Set<String> requestKeys = requestData.keySet()
         Geo result = new Geo();
@@ -45,23 +51,24 @@ class GetJsonList {
                 for (String typeName : typeValues) {
                     // TYPE values
                     final Select type =  new Select();
-                    final Geo typeGeo = type.read("Type", null, "Type LIKE '" + typeName + "'");
+                    final Geo typeGeo = type.read(connection, "Type", null, "Type LIKE '" + typeName + "'");
                     final String typeId = typeGeo.getValueForKey("Type_ID", 0);
 
                     for (String countryName : countryValues) {
 
                         Select countrySelect = new Select();
-                        Geo countryGeo = countrySelect.read("Country", "Country_ID", "Country LIKE '"+countryName+"'")
+                        Geo countryGeo = countrySelect.read(connection, "Country", "Country_ID", "Country LIKE '"+countryName+"'")
                         String countryId = countryGeo.getValueForKey("Country_ID", 0);
 
-                        Moderation moderation = new Moderation()
+                        Moderation moderation = new Moderation(connection)
                         result = moderation.getAllRevisionsForTypeAndCountry(Integer.parseInt(countryId), Integer.parseInt(typeId))
                     }
                 }
             }
         }
         else if (returnType.equals("Database_Type")) {
-            result = new Moderation().getDatabaseType()
+            result = new Moderation(connection).getDatabaseType()
+            return result
         }
         else if (returnType.equals("Type")) {
             ArrayList<String> values = []
@@ -72,7 +79,7 @@ class GetJsonList {
                 return result
             }
             for (String v : values) {
-                result = new Moderation().getTypeForDb(v)
+                result = new Moderation(connection).getTypeForDb(v)
             }
         }
         else if (returnType.equals("Country")) {
@@ -84,7 +91,7 @@ class GetJsonList {
                 return result
             }
             for (String v : values) {
-                result = new Moderation().getCountryForType(v)
+                result = new Moderation(connection).getCountryForType(v)
             }
         }
         else if (returnType.equals("State")) {
@@ -96,11 +103,10 @@ class GetJsonList {
                 return result
             }
             for (String v : values) {
-                result = new Moderation().getStateForCountry(v)
+                result = new Moderation(connection).getStateForCountry(v)
             }
         }
 
         return result
     }
-
 }

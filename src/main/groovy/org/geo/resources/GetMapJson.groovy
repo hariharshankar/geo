@@ -3,15 +3,16 @@ package org.geo.resources
 import org.geo.core.GeoSystem
 import org.geo.core.db.GeoPoint;
 import org.geo.core.db.Moderation
+import org.geo.core.Geo
 import org.geo.core.db.Select;
-import org.geo.core.db.Geo;
 import org.geo.core.services.MapLocations;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MediaType
+import java.sql.Connection;
 
 /**
  * @author: Harihar Shankar, 5/1/13 7:18 PM
@@ -21,8 +22,14 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 public class GetMapJson {
 
+    private Connection connection;
+
+    public GetMapJson(Connection connection) {
+        this.connection = connection
+    }
+
     @GET
-    public static MapLocations getMapJson(@QueryParam("country_id") final String countryId,
+    public MapLocations getMapJson(@QueryParam("country_id") final String countryId,
                              @QueryParam("type_id") final String typeId,
                              @QueryParam("description_id") final String descriptionId) {
 
@@ -36,18 +43,18 @@ public class GetMapJson {
         return null
     }
 
-    public static MapLocations getMapJsonForCountryAndType(final String countryId, final String typeId) {
-        Moderation moderation = new Moderation();
+    public MapLocations getMapJsonForCountryAndType(final String countryId, final String typeId) {
+        Moderation moderation = new Moderation(connection);
         Geo revisions = moderation.getAllRevisionsForTypeAndCountry(Integer.parseInt(countryId), Integer.parseInt(typeId));
 
         // TYPE values
         final Select type =  new Select();
-        final Geo typeGeo = type.read("Type", null, "Type_ID=" + typeId);
+        final Geo typeGeo = type.read(connection, "Type", null, "Type_ID=" + typeId);
         final String typeName = typeGeo.getValueForKey("Type", 0);
 
         // Country table
         final Select country =  new Select();
-        final Geo countryGeo = country.read("Country", null, "Country_ID=" + countryId);
+        final Geo countryGeo = country.read(connection, "Country", null, "Country_ID=" + countryId);
         final String countryName = countryGeo.getValueForKey("Country", 0);
 
         ArrayList<GeoPoint> loc = new ArrayList<GeoPoint>(revisions.getRowCount());
@@ -56,7 +63,7 @@ public class GetMapJson {
 
             // saving lat lng in hidden fields for plotting in google maps
             Select location = new Select();
-            Geo locationGeo = location.read(typeName + "_Location", "", "Description_ID=" + descriptionId);
+            Geo locationGeo = location.read(connection, typeName + "_Location", "", "Description_ID=" + descriptionId);
             String latitude = locationGeo.getValueForKey("Latitude_Start", 0);
             String longitude = locationGeo.getValueForKey("Longitude_Start", 0);
 
@@ -68,29 +75,35 @@ public class GetMapJson {
     }
 
 
-    public static MapLocations getMapJsonForDescriptionId(@QueryParam("description_id") final String descriptionId) {
+    public MapLocations getMapJsonForDescriptionId(@QueryParam("description_id") final String descriptionId) {
 
         ArrayList<GeoPoint> loc = new ArrayList<GeoPoint>(2);
 
-        GeoSystem geoSystem = new GeoSystem(Integer.parseInt(descriptionId))
-        Map<String,String> type = geoSystem.getType()
-        String typeName = type.get("typeName")
+        GeoSystem geoSystem = new GeoSystem(connection, Integer.parseInt(descriptionId))
+        Integer typeId = geoSystem.getTypeId()
 
-        Map<String,String> country = geoSystem.getCountry()
-        String countryName = country.get("countryName")
+        final Select type =  new Select();
+        final Geo typeGeo = type.read(connection, "Type", null, "Type_ID=" + typeId);
+        final String typeName = typeGeo.getValueForKey("Type", 0);
+
+        /*
+        Integer countryId = geoSystem.getCountryId()
+        Country country = new Country(countryId)
+        String countryName = country.getCountryName()
 
         Map<String,String> state = geoSystem.getState()
         String stateName = state.get("stateName")
+        */
 
         // fetching lat lng from the _Location table
         Select location = new Select();
-        Geo locationGeo = location.read(typeName + "_Location", "", "Description_ID=" + descriptionId);
+        Geo locationGeo = location.read(connection, typeName + "_Location", "", "Description_ID=" + descriptionId);
         String latitude = locationGeo.getValueForKey("Latitude_Start", 0);
         String longitude = locationGeo.getValueForKey("Longitude_Start", 0);
 
         // fetching overlays from the _Overlays table
         Select overlayTable = new Select();
-        Geo overlaysGeo = overlayTable.read(typeName + "_Overlays", "", "Description_ID=" + descriptionId);
+        Geo overlaysGeo = overlayTable.read(connection, typeName + "_Overlays", "", "Description_ID=" + descriptionId);
         ArrayList<Map<String,String>> overlays = new ArrayList<>(overlaysGeo.getRowCount());
 
         for (int i=0; i<overlaysGeo.getRowCount(); i++) {
@@ -108,7 +121,7 @@ public class GetMapJson {
 
         // fetching the name of the plant
         Select description = new Select();
-        Geo descriptionSearchResult = description.read(typeName + "_Description", "Name_omit", "Description_ID=" + descriptionId);
+        Geo descriptionSearchResult = description.read(connection, typeName + "_Description", "Name_omit", "Description_ID=" + descriptionId);
         String name = descriptionSearchResult.getValueForKey("Name_omit", 0);
 
         GeoPoint gp = new GeoPoint(Double.parseDouble(latitude), Double.parseDouble(longitude), name, overlays);

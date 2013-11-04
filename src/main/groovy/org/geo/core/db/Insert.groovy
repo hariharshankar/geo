@@ -17,12 +17,8 @@ public class Insert {
 
     private static Connection connection;
 
-    public Insert() {
-        connection = new DbConnection().getConnection();
-    }
-
-    public void close() {
-        connection.close()
+    public Insert(Connection connection) {
+        this.connection = connection;
     }
 
     public Integer insert(final String tableName, final MultivaluedMap<String,String> formData, final String moduleType) {
@@ -81,6 +77,7 @@ public class Insert {
             preparedStatement.setInt(2, descriptionId)
             preparedStatement.execute()
         }
+        statement.close()
 
         return descriptionId
     }
@@ -93,7 +90,7 @@ public class Insert {
         String sqlFields = "`Description_ID`"
         String sqlParams = "?"
 
-        LinkedHashMap<String, String> columnNames = new Select().readColumnName(tableName, null)
+        LinkedHashMap<String, String> columnNames = new Select().readColumnName(connection, tableName, null)
         for (String k : columnNames.keySet()) {
             if (!formData.get(k))
                 continue
@@ -120,7 +117,7 @@ public class Insert {
                 statement.setString(i+2, sqlValues.get(i).toString())
         }
         statement.execute()
-
+        statement.close()
         return 1
     }
 
@@ -128,7 +125,7 @@ public class Insert {
     private static Integer insertPerformanceModule(String tableName, final MultivaluedMap<String, String> formData) {
 
         tableName = tableName.replace("_Annual", "")
-        LinkedHashMap<String, String> columnNames = new Select().readColumnName(tableName, null)
+        LinkedHashMap<String, String> columnNames = new Select().readColumnName(connection, tableName, null)
 
         for (int year=Tokens.ANNUAL_PERFORMANCE_DECADE_END; year>=Tokens.ANNUAL_PERFORMANCE_DECADE_START; year--) {
             ArrayList<Object> sqlValues = [];
@@ -167,6 +164,7 @@ public class Insert {
                     statement.setString(i+3, sqlValues.get(i).toString())
             }
             statement.execute()
+            statement.close()
         }
         return 1;
     }
@@ -174,7 +172,7 @@ public class Insert {
 
     private static Integer insertRowColumnModule(final String tableName, final MultivaluedMap<String, String> formData) {
 
-        LinkedHashMap<String, String> columnNames = new Select().readColumnName(tableName, null)
+        LinkedHashMap<String, String> columnNames = new Select().readColumnName(connection, tableName, null)
 
         println(tableName)
         if (formData.get("numberOf"+tableName) == null)
@@ -217,8 +215,8 @@ public class Insert {
                     statement.setString(i+2, sqlValues.get(i).toString())
             }
             statement.execute()
+            statement.close()
         }
-
         return 1;
     }
 }

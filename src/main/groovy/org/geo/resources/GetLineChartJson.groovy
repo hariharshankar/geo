@@ -1,14 +1,15 @@
 package org.geo.resources;
 
 import org.geo.core.db.Moderation;
+import org.geo.core.Geo
 import org.geo.core.db.Select;
-import org.geo.core.db.Geo;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MediaType
+import java.sql.Connection;
 
 /**
  * @author: Harihar Shankar, 5/1/13 8:00 PM
@@ -17,6 +18,12 @@ import javax.ws.rs.core.MediaType;
 @Path("/services/json/linechart")
 @Produces(MediaType.APPLICATION_JSON)
 public class GetLineChartJson {
+
+    private Connection connection
+
+    public GetLineChartJson(Connection connection) {
+        this.connection = connection
+    }
 
     @GET
     public static Geo getLineChartJson(@QueryParam("country_id") final String countryId,
@@ -36,19 +43,19 @@ public class GetLineChartJson {
         return lineChart;
     }
 
-    private static Geo getJsonForCumulativeChart(final String countryId, final String typeId, final String fields, final String module) {
+    private Geo getJsonForCumulativeChart(final String countryId, final String typeId, final String fields, final String module) {
 
         // TYPE values
         final Select type =  new Select();
-        final Geo typeGeo = type.read("Type", null, "Type_ID=" + typeId);
+        final Geo typeGeo = type.read(connection, "Type", null, "Type_ID=" + typeId);
         final String typeName = typeGeo.getValueForKey("Type", 0);
 
         // Country table
         final Select country =  new Select();
-        final Geo countryGeo = country.read("Country", null, "Country_ID=" + countryId);
+        final Geo countryGeo = country.read(connection, "Country", null, "Country_ID=" + countryId);
         final String countryName = countryGeo.getValueForKey("Country", 0);
 
-        Moderation moderation = new Moderation();
+        Moderation moderation = new Moderation(connection);
         Geo revisions = moderation.getAllRevisionsForTypeAndCountry(Integer.parseInt(countryId), Integer.parseInt(typeId));
 
         String mod;
@@ -81,7 +88,7 @@ public class GetLineChartJson {
             for (ArrayList<String> res : revisions.getValues()) {
                 int descriptionId = Integer.parseInt(res.get(0))
                 Select gwh = new Select();
-                Geo gwhGeo = gwh.read(typeName + mod, fields + "," + xAxis, "Description_ID=" + descriptionId);
+                Geo gwhGeo = gwh.read(connection, typeName + mod, fields + "," + xAxis, "Description_ID=" + descriptionId);
 
                 Integer gwhYears = gwhGeo.getRowCount();
 

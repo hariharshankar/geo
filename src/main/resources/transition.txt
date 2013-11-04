@@ -1,5 +1,12 @@
+
+drop database geoDev;
+create database geoDev;
+use geoDev;
+
+source ~/GEO_DB.sql;
+
 /*combining moderated_history table */
-alter table History add (Moderated_Time_Stamp timestamp, Moderator_ID int, Accepted tinyint, Comments text);
+alter table History add (Moderated_Time_Stamp timestamp null, Moderator_ID int, Accepted tinyint, Comments text);
 update History as h, Moderated_History as mh set h.Moderated_Time_Stamp=mh.Time_Stamp, h.Moderator_ID=mh.Moderator_ID, h.Accepted=mh.Accepted, h.Comments=mh.Comments where h.Description_ID=mh.Description_ID;
 
 /* combining main table */
@@ -18,8 +25,12 @@ alter table History drop index History_User_fk;
 alter table History drop FOREIGN KEY History_Parent_Plant_fk;
 alter table History drop index History_Parent_Plant_fk;
 
-ALTER TABLE  `History` CHANGE  `Moderated_Time_Stamp`  `Moderated_Time_Stamp` TIMESTAMP NULL DEFAULT NULL;
+create index Parent_Plant_ID_Index on History (Parent_Plant_ID) using BTREE;
+create index Country_ID_Index on History (Country_ID) using BTREE;
+create index Type_ID_Index on History (Type_ID) using BTREE;
 
+/* fix for a bug introduced during manual edits */
+update History set Moderated_Time_Stamp = Time_Stamp where Moderated_Time_Stamp='0000-00-00 00:00:00';
 
 /* global analysis metadata */
 /*create table */
@@ -31,79 +42,79 @@ ALTER TABLE  `Type_Features` CHANGE  `Features`  `Features` SET(  'Identifiers',
 
 /* change major upgrades to upgrade in features... matches the type table names */
 
-ALTER TABLE  `Type_Features` CHANGE  `Features`  `Features` SET(  'Identifiers',  'Dual_Node_Identifiers',  'Location',  'Dual_Node_Locations',  'Modeling',  'Description', 'Dual_Node_Description',  'Associated_Infrastructure',  'Unit_Description',  'Annual_Capacity',  'Refinery_Products',  'Environmental_Issues',  'Upgrade',  'Owner_Information', 'Wind_Potential_Height',  'Annual_Performance',  'Comments',  'References',  'History' );
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 7; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 2; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 6; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 3; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 9; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 4; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 8; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 1; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 10; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 5; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 12; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 11; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 13; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 14; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 18; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 16; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Wind_Potential_Height,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 17; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Refinery_Products,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 15; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Modeling,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 28; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 19; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 21; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 20; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 22; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 24; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 25; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 26; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 27; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 23; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 29; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Annual_Capacity,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 30;
-UPDATE  `geoDev`.`Type_Features` SET  `Features` =  'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` =31;
-UPDATE  `geoDev`.`Type_Features` SET  `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Information,Annual_Performance,Comments,References,History' WHERE  `Type_Features`.`Type_ID` =32;
-UPDATE  `geoDev`.`Type_Features` SET  `Features` =  'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` =33;
+ALTER TABLE  `Type_Features` CHANGE  `Features`  `Features` SET(  'Identifiers',  'Dual_Node_Identifiers',  'Location',  'Dual_Node_Locations',  'Modeling',  'Description', 'Dual_Node_Description',  'Associated_Infrastructure',  'Unit_Description',  'Annual_Capacity',  'Refinery_Products',  'Environmental_Issues',  'Upgrades',  'Owner_Information', 'Wind_Potential_Height',  'Annual_Performance',  'Comments',  'References',  'History' );
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 7; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 2; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 6; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 3; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 9; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 4; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 8; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 1; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 10; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 5; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 12; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 11; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 13; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 14; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 18; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 16; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Wind_Potential_Height,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 17; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Refinery_Products,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 15; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Modeling,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 28; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 19; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 21; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 20; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 22; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 24; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 25; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 26; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 27; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 23; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 29; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Annual_Capacity,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 30;
+UPDATE  `Type_Features` SET  `Features` =  'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` =31;
+UPDATE  `Type_Features` SET  `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Information,Annual_Performance,Comments,References,History' WHERE  `Type_Features`.`Type_ID` =32;
+UPDATE  `Type_Features` SET  `Features` =  'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` =33;
 
 
 /* change owner_information to owner_details */
 
-ALTER TABLE  `Type_Features` CHANGE  `Features`  `Features` SET(  'Identifiers',  'Dual_Node_Identifiers',  'Location',  'Dual_Node_Locations',  'Modeling',  'Description', 'Dual_Node_Description',  'Associated_Infrastructure',  'Unit_Description',  'Annual_Capacity',  'Refinery_Products',  'Environmental_Issues',  'Upgrade',  'Owner_Details', 'Wind_Potential_Height',  'Annual_Performance',  'Comments',  'References',  'History' );
+ALTER TABLE  `Type_Features` CHANGE  `Features`  `Features` SET(  'Identifiers',  'Dual_Node_Identifiers',  'Location',  'Dual_Node_Locations',  'Modeling',  'Description', 'Dual_Node_Description',  'Associated_Infrastructure',  'Unit_Description',  'Annual_Capacity',  'Refinery_Products',  'Environmental_Issues',  'Upgrades',  'Owner_Details', 'Wind_Potential_Height',  'Annual_Performance',  'Comments',  'References',  'History' );
 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 7; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 2; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 6; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 3; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 9; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 4; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 8; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 1; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 10; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 5; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 12; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 11; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 13; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 14; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 18; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 16; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Wind_Potential_Height,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 17; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Refinery_Products,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 15; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Modeling,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 28; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 19; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 21; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 20; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 22; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 24; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 25; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 26; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 27; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 23; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 29; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Annual_Capacity,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 30; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 31; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 32; 
-UPDATE `geoDev`.`Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrade,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 33;
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 7; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 2; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 6; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 3; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 9; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 4; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 8; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 1; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 10; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 5; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 12; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 11; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 13; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 14; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 18; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 16; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Wind_Potential_Height,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 17; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Refinery_Products,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 15; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Modeling,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 28; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 19; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 21; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 20; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 22; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 24; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 25; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 26; 
+UPDATE `Type_Features` SET `Features` = 'Dual_Node_Identifiers,Dual_Node_Locations,Dual_Node_Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 27; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 23; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 29; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Annual_Capacity,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 30; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 31; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Unit_Description,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 32; 
+UPDATE `Type_Features` SET `Features` = 'Identifiers,Location,Description,Associated_Infrastructure,Environmental_Issues,Upgrades,Owner_Details,Annual_Performance,Comments,References,History' WHERE `Type_Features`.`Type_ID` = 33;
 
 
 /* COAL specific changes */
@@ -756,4 +767,40 @@ alter table Towns_and_Cities_Environmental_Issues change Description Description
 converting overlays from encoded string to points.
 <path-to>/resources/decodePoly.sh
 */
+
+/* rename all _Upgrade tables to _Upgrades */
+alter table Biomass_Potential_Upgrade rename Biomass_Potential_Upgrades;
+alter table CO2_Storage_Upgrade rename CO2_Storage_Upgrades;
+alter table Coal_Mines_Upgrade rename Coal_Mines_Upgrades;
+alter table Coal_Ports_Upgrade rename Coal_Ports_Upgrades;
+alter table Coal_Upgrade rename Coal_Upgrades;
+alter table Crude_Oil_Refineries_Upgrade rename Crude_Oil_Refineries_Upgrades;
+alter table Economic_Activity_Upgrade rename Economic_Activity_Upgrades;
+alter table Electric_Power_Grid_Upgrade rename Electric_Power_Grid_Upgrades;
+alter table Gas_Fields_Upgrade rename Gas_Fields_Upgrades;
+alter table Gas_Pipelines_Upgrade rename Gas_Pipelines_Upgrades;
+alter table Gas_Upgrade rename Gas_Upgrades;
+alter table Geothermal_Upgrade rename Geothermal_Upgrades;
+alter table Hydro_Upgrade rename Hydro_Upgrades;
+alter table Industries_Upgrade rename Industries_Upgrades;
+alter table LNG_Ports_Upgrade rename LNG_Ports_Upgrades;
+alter table Nuclear_Upgrade rename Nuclear_Upgrades;
+alter table Oil_Fields_Upgrade rename Oil_Fields_Upgrades;
+alter table Oil_Pipelines_Upgrade rename Oil_Pipelines_Upgrades;
+alter table Oil_Ports_Upgrade rename Oil_Ports_Upgrades;
+alter table Oil_Upgrade rename Oil_Upgrades;
+alter table Population_Upgrade rename Population_Upgrades;
+alter table Rail_Links_Upgrade rename Rail_Links_Upgrades;
+alter table Road_Links_Upgrade rename Road_Links_Upgrades;
+alter table Shipping_Lanes_Upgrade rename Shipping_Lanes_Upgrades;
+alter table Solar_PV_Upgrade rename Solar_PV_Upgrades;
+alter table Solar_Potential_Upgrade rename Solar_Potential_Upgrades;
+alter table Solar_Thermal_Upgrade rename Solar_Thermal_Upgrades;
+alter table Towns_and_Cities_Upgrade rename Towns_and_Cities_Upgrades;
+alter table Uranium_Mines_Upgrade rename Uranium_Mines_Upgrades;
+alter table Waste_Upgrade rename Waste_Upgrades;
+alter table Water_Resources_Upgrade rename Water_Resources_Upgrades;
+alter table Wind_Potential_Upgrade rename Wind_Potential_Upgrades;
+alter table Wind_Upgrade rename Wind_Upgrades;
+
 
